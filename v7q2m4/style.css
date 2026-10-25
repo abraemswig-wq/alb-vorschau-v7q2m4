@@ -1,0 +1,905 @@
+/* =========================================================
+   Praxis für Manuelle Medizin Münster — Albersmeier & Marx
+   Struktur-Rebuild nach lavadental.lv, eigene CI
+   Raster, Typo-Skala, Space-Skala und Easing live aus der
+   Referenz gemessen (computed styles / CSS-Variablen).
+   ========================================================= */
+
+:root{
+  /* ---- CI: Creme + Bordeaux + Hellblau ---- */
+  --ink:#2E0A18;          /* dunkle Grossflaeche (Lava: #031c14) */
+  --brand:#4C1228;        /* Bordeaux — Schrift auf Creme, Marke */
+  --paper:#FAF5EC;        /* Creme — helle Grossflaeche (Lava: #ddefde) */
+  --paper-hi:#FFFCF5;
+  --blue:#D4E3EB;         /* Hellblau — Akzent AUF DUNKEL (Lava: #dbc093) */
+  --blue-deep:#A9C6D4;
+  --accent:#8A3A50;
+  --accent-soft:#C9A3AF;
+  --tertiary:#9B7D86;     /* Lava: #779e91 */
+  --muted:#6A5159;
+  --line:#E3D8C6;
+  --gold:#B8822A;         /* dekorativer Akzent auf HELL */
+
+  --ink-20:rgba(46,10,24,.2);
+  --ink-50:rgba(46,10,24,.5);
+  --ink-80:rgba(46,10,24,.8);
+  --paper-20:rgba(250,245,236,.2);
+  --paper-50:rgba(250,245,236,.5);
+  --paper-80:rgba(250,245,236,.8);
+
+  /* ---- Easing + Dauer: 1:1 aus der Referenz ---- */
+  --ease-1:cubic-bezier(.33,0,.11,1);
+  --ease-2:cubic-bezier(1,0,.47,.93); /* ease-in, hier absichtlich unbenutzt */
+  --ease-3:cubic-bezier(.2,2.5,.4,1);
+  --ease-4:cubic-bezier(.1,.75,.25,1);
+  --ease-5:cubic-bezier(.1,.25,.25,1);
+  --dur:.5s;
+
+  /* ---- Typo-Skala (fluid, 1:1 aus der Referenz) ---- */
+  --fs--2:clamp(.64rem,.6169rem + .1026vw,.7035rem);
+  --fs--1:clamp(.8rem,.7499rem + .2226vw,.9377rem);
+  --fs-0:clamp(1rem,.9091rem + .404vw,1.25rem);
+  --fs-1:clamp(1.25rem,1.0986rem + .6727vw,1.6663rem);
+  --fs-2:clamp(1.5625rem,1.323rem + 1.0644vw,2.2211rem);
+  --fs-3:clamp(1.9531rem,1.5867rem + 1.6285vw,2.9607rem);
+  --fs-4:clamp(2.4414rem,1.894rem + 2.4327vw,3.9467rem);
+  --fs-5:clamp(3.0518rem,2.2484rem + 3.5703vw,5.2609rem);
+
+  /* ---- Space-Skala (fluid, 1:1 aus der Referenz) ---- */
+  --sp-3xs:clamp(.25rem,.2273rem + .101vw,.3125rem);
+  --sp-2xs:clamp(.5rem,.4545rem + .202vw,.625rem);
+  --sp-xs:clamp(.75rem,.6818rem + .303vw,.9375rem);
+  --sp-s:clamp(1rem,.9091rem + .404vw,1.25rem);
+  --sp-m:clamp(1.5rem,1.3636rem + .6061vw,1.875rem);
+  --sp-l:clamp(2rem,1.8182rem + .8081vw,2.5rem);
+  --sp-xl:clamp(3rem,2.7273rem + 1.2121vw,3.75rem);
+  --sp-2xl:clamp(4rem,3.6364rem + 1.6162vw,5rem);
+  --sp-3xl:clamp(6rem,5.4545rem + 2.4242vw,7.5rem);
+  --sp-4xl:clamp(8rem,7.2727rem + 3.2323vw,10rem);
+  --sp-5xl:clamp(12rem,10.9091rem + 4.8485vw,15rem);
+
+  /* ---- Raster: 12 Spalten, 1290px Inhalt in 1350px Viewport ---- */
+  --grid-whole:1290px;
+  --grid-viewport:1350px;
+  --gutter:clamp(1rem,.6818rem + 1.4141vw,1.875rem);
+  --pad:clamp(1.5rem,1.3636rem + .6061vw,1.875rem);
+
+  --radius:3px;           /* CI ist rechtwinklig */
+  --header-h:92px;
+
+  --p:0;                  /* Scroll-Fortschritt, vom rAF-Loop geschrieben */
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+body{
+  margin:0;
+  font-family:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-size:var(--fs-0);
+  font-weight:400;
+  line-height:1.5;
+  color:var(--paper);
+  background:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+h1,h2,h3,h4,p,figure,dl,dd{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+[id]{scroll-margin-top:calc(var(--header-h) + var(--sp-s))}
+
+/* Ohne Uebergang und ohne top: der Sprunglink wird nur per Tastatur erreicht.
+   Eine halbe Sekunde Einfahrt wuerde genau den Moment verzoegern, in dem jemand
+   wissen muss, wo der Fokus steht. */
+.skip{
+  position:fixed;left:var(--pad);top:var(--sp-xs);z-index:99;
+  background:var(--paper);color:var(--brand);padding:.7em 1.2em;
+  border-radius:var(--radius);font-size:var(--fs--1);
+  transform:translateY(calc(-100% - var(--sp-xs) - 1rem));
+}
+.skip:focus{transform:none}
+
+/* Ohne JS bleibt nichts unsichtbar oder unlesbar */
+html:not(.js) [data-rev],html:not(.js) [data-rev-wipe]{opacity:1;transform:none;clip-path:none}
+html:not(.js) .reveal__text .w,html:not(.js) .reveal__text{color:var(--paper)}
+html:not(.js) .carousel__slide{opacity:1}
+html:not(.js) .process__title{transform:none;opacity:1}
+
+/* ---------- Raster ---------- */
+.wrap{width:100%;max-width:calc(var(--grid-whole) + 2*var(--pad));margin-inline:auto;padding-inline:var(--pad)}
+.grid12{display:grid;grid-template-columns:repeat(12,1fr);gap:var(--sp-3xl) var(--gutter)}
+
+/* ---------- Typo ---------- */
+.d1,.d2,.d3,.d4{font-family:'Lora',Georgia,'Times New Roman',serif;font-weight:400;line-height:1.08;letter-spacing:-.02em}
+.d1{font-size:var(--fs-5)}
+.d2{font-size:var(--fs-4)}
+.d3{font-size:var(--fs-3);line-height:1.14}
+.d4{font-size:var(--fs-2);line-height:1.2;letter-spacing:-.01em}
+.lead{font-size:var(--fs-1);line-height:1.4}
+.small{font-size:var(--fs--1)}
+.eyebrow{
+  font-size:var(--fs--1);font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--tertiary);
+}
+.prose p + p{margin-top:1em}
+.prose{color:var(--muted);max-width:62ch}
+.on-dark .prose,.on-dark.prose{color:var(--paper-80)}
+
+/* ---------- Flaechen ---------- */
+.s-dark{background:var(--ink);color:var(--paper)}
+.s-light{background:var(--paper);color:var(--brand)}
+.s-blue{background:var(--blue);color:var(--brand)}
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:var(--sp-2xs);
+  padding:1.15rem 2rem;border-radius:var(--radius);
+  font-size:var(--fs--1);font-weight:500;letter-spacing:.02em;
+  transition:background-color var(--dur) var(--ease-4),color var(--dur) var(--ease-4),transform var(--dur) var(--ease-4);
+}
+.btn--primary{background:var(--paper);color:var(--brand)}
+.btn--on-light{background:var(--brand);color:var(--paper)}
+.btn--ghost{border:1px solid currentColor}
+@media (hover:hover) and (pointer:fine){
+  .btn--primary:hover{background:var(--blue);transform:translateY(-2px)}
+  .btn--on-light:hover{background:var(--ink);transform:translateY(-2px)}
+  .btn--ghost:hover{background:currentColor}
+  .btn--ghost:hover span{color:var(--ink)}
+}
+.btn-round{
+  width:56px;height:56px;border-radius:50%;flex:0 0 auto;
+  display:grid;place-items:center;background:var(--paper);color:var(--brand);
+  transition:transform var(--dur) var(--ease-4),background-color var(--dur) var(--ease-4);
+}
+@media (hover:hover) and (pointer:fine){
+  a:hover > .btn-round,button:hover > .btn-round,.card:hover .btn-round{transform:rotate(45deg)}
+}
+
+/* =========================================================
+   HEADER — Wortmarke ohne Bildmarke, Mittel-Navigation
+   ========================================================= */
+.header{
+  position:fixed;inset:0 0 auto 0;z-index:80;height:var(--header-h);
+  display:flex;align-items:center;
+  color:var(--paper);--scrim:var(--ink);
+  transition:color var(--dur) var(--ease-4);
+}
+/* Lava legt einen Verlauf in der Flaechenfarbe unter die Navigation, damit
+   durchlaufende Display-Zeilen und Bilder nicht gegen die Links kollidieren. */
+.header::before{
+  content:'';position:absolute;inset:0 0 auto 0;z-index:-1;pointer-events:none;
+  height:calc(var(--header-h) + 3.5rem);
+  background:linear-gradient(to bottom,var(--scrim) 0,var(--scrim) 42%,transparent 100%);
+  /* nur background-image, nicht die Kurzschrift: die wuerde bei jedem
+     Flaechenwechsel auch Position, Groesse und Wiederholung mit animieren. */
+  transition:background-image var(--dur) var(--ease-4);
+}
+.header--light{color:var(--brand);--scrim:var(--paper)}
+.header__inner{
+  width:100%;max-width:calc(var(--grid-whole) + 2*var(--pad));
+  margin-inline:auto;padding-inline:var(--pad);
+  display:flex;align-items:center;gap:var(--sp-l);
+}
+.wordmark{
+  font-family:'Lora',Georgia,serif;font-size:var(--fs-0);font-weight:500;
+  letter-spacing:.22em;text-transform:uppercase;line-height:1;white-space:nowrap;
+}
+.wordmark small{display:block;font-size:.46em;letter-spacing:.3em;margin-top:.5em;opacity:.7;font-family:'Be Vietnam Pro',sans-serif;font-weight:400;transition:opacity var(--dur) var(--ease-4),letter-spacing var(--dur) var(--ease-4)}
+@media (hover:hover) and (pointer:fine){
+  .wordmark:hover small{opacity:1;letter-spacing:.36em}
+}
+.nav{display:flex;gap:var(--sp-m);margin-inline:auto}
+.nav__link{
+  position:relative;font-size:var(--fs--1);padding-block:.4rem;
+  color:currentColor;opacity:.75;
+  transition:opacity var(--dur) var(--ease-4);
+}
+.nav__link::after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:currentColor;transform:scaleX(0);transform-origin:left;
+  transition:transform var(--dur) var(--ease-4);
+}
+@media (hover:hover) and (pointer:fine){
+  .nav__link:hover{opacity:1}
+  .nav__link:hover::after{transform:scaleX(1)}
+}
+.nav__link[aria-current="true"]{opacity:1}
+.nav__link[aria-current="true"]::after{transform:scaleX(1)}
+.header__cta{display:flex;align-items:center;gap:var(--sp-xs);font-size:var(--fs--1);white-space:nowrap}
+.header__cta b{font-weight:500;letter-spacing:.02em}
+
+.burger{display:none;width:44px;height:44px;place-items:center;margin-left:auto}
+.burger span{display:block;width:22px;height:1px;background:currentColor;position:relative;transition:transform var(--dur) var(--ease-4)}
+.burger span::before,.burger span::after{
+  content:'';position:absolute;left:0;width:22px;height:1px;background:currentColor;
+  transition:transform var(--dur) var(--ease-4),opacity var(--dur) var(--ease-4);
+}
+.burger span::before{top:-7px}
+.burger span::after{top:7px}
+/* Offen = Kreuz: der Knopf muss zeigen, dass er jetzt schliesst */
+.burger[aria-expanded="true"] span{transform:rotate(45deg)}
+.burger[aria-expanded="true"] span::before{transform:translateY(7px);opacity:0}
+.burger[aria-expanded="true"] span::after{transform:translateY(-7px) rotate(-90deg)}
+
+/* Mobilmenue */
+.mobnav{
+  position:fixed;inset:0;z-index:79;background:var(--ink);color:var(--paper);
+  /* unten zusaetzlich Platz fuer das fixe Hinweisband, das bis zu drei Zeilen hoch wird */
+  padding:calc(var(--header-h) + var(--sp-l)) var(--pad) calc(var(--sp-xl) + 3.5rem);
+  display:flex;flex-direction:column;gap:var(--sp-s);
+  opacity:0;visibility:hidden;transform:translateY(-12px);
+  transition:opacity var(--dur) var(--ease-4),transform var(--dur) var(--ease-4),visibility var(--dur);
+}
+.mobnav[data-open="true"]{opacity:1;visibility:visible;transform:none}
+/* nur die Sprungmarken gross setzen — die Kontaktzeilen unten liefen sonst
+   auf 390px ueber den rechten Rand hinaus */
+.mobnav > a{font-family:'Lora',serif;font-size:var(--fs-2);padding-block:var(--sp-2xs);border-bottom:1px solid var(--paper-20)}
+.mobnav .mobnav__foot{margin-top:auto;font-size:var(--fs--1);color:var(--paper-50);display:grid;gap:.35em}
+.mobnav__foot a{overflow-wrap:anywhere}
+
+/* =========================================================
+   Fortschrittsbalken je Sektion (Lava: grow-progress scaleX)
+   ========================================================= */
+.sec{position:relative}
+/* Der Balken klebt am unteren Fensterrand, solange seine Sektion laeuft —
+   bei den drei Bildschirme hohen Pins waere er am Sektionsfuss unsichtbar. */
+.sec__progress{
+  position:sticky;top:calc(100vh - 2px);z-index:70;
+  height:2px;background:currentColor;opacity:.22;
+  transform:scaleX(var(--p,0));transform-origin:left;
+}
+
+/* Lesefortschritt der ganzen Seite, unter der Kopfzeile.
+   Scroll-gebundene CSS-Animation, wo verfuegbar; sonst schreibt der
+   rAF-Loop --page und der Balken rechnet daraus. */
+.header__progress{
+  position:absolute;inset:auto 0 0 0;height:2px;
+  background:currentColor;opacity:.3;
+  transform:scaleX(var(--page,0));transform-origin:left;
+}
+@supports (animation-timeline:scroll()){
+  @keyframes page-progress{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  @media (prefers-reduced-motion:no-preference){
+    .header__progress{
+      animation:page-progress linear both;
+      animation-timeline:scroll(root block);
+    }
+  }
+}
+
+/* =========================================================
+   1 — HERO-GROSSSEKTION (gepinnte Scroll-Sequenz)
+   ========================================================= */
+.saga{position:relative;background:var(--ink)}
+
+/* --- 1a Hero --- */
+/* --fp ist der Weg des Films vom Vollbild in den Rahmen: 0 am Seitenanfang,
+   1 bei 50 % der Hero-Strecke — danach steht der Film still, bevor er ab
+   75 % mit dem Rest nach oben abgeht. Der Rueckfall 1 gilt vor dem ersten rAF-Lauf
+   und ohne JS — dann steht der Film von Anfang an im Rahmen. */
+.hero{height:300vh;position:relative;--fp:min(1,calc(var(--p,1) / .5))}
+/* minmax(0,1fr): ohne das waechst die implizite Rasterspalte auf die
+   min-content-Breite des laengsten Display-Wortes und sprengt das Fenster. */
+.hero__pin{position:sticky;top:0;height:100vh;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);align-content:center}
+.hero__bg{position:absolute;inset:0;z-index:0}
+.hero__bg img{width:100%;height:100%;object-fit:cover;opacity:.26;filter:saturate(.5)}
+.hero__bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--ink) 0%,rgba(46,10,24,.72) 42%,var(--ink) 100%)}
+.hero__inner{position:relative;z-index:3;width:100%;max-width:calc(var(--grid-whole) + 2*var(--pad));margin-inline:auto;padding-inline:var(--pad)}
+.hero__title{max-width:14ch}
+.hero__sub{margin-top:var(--sp-xl);max-width:34ch;font-size:var(--fs-1);color:var(--paper-80)}
+.hero__actions{margin-top:var(--sp-l);display:flex;flex-wrap:wrap;gap:var(--sp-s);align-items:center}
+/* Breite: nicht `min(42vw,520px)`. Der Rahmen muss dort wachsen, wo Platz
+   ist, und darf unten NICHT mitwachsen — die Headline ist auf 14ch begrenzt,
+   ihre rechte Kante wandert beim Schmalerwerden also prozentual nach rechts.
+   Nachgemessen: bei 1100 px lag der Rahmen schon vorher 16 px UEBER dem
+   Titel; ein pauschales +20 % haette daraus -109 px gemacht.
+   `56vw - 180px` waechst schneller als die Textspalte, raeumt dabei die
+   alte Ueberlappung aus und bleibt bis 900 px herunter auf Abstand; der
+   obere Anschlag 720px verhindert, dass der Rahmen auf sehr breiten
+   Schirmen die Seite uebernimmt. */
+.hero__media{
+  position:absolute;right:var(--pad);top:50%;translate:0 -50%;
+  width:clamp(320px,calc(56vw - 180px),720px);
+  aspect-ratio:4/3;overflow:hidden;border-radius:var(--radius);
+  z-index:1;transform-origin:50% 50%;will-change:transform;
+}
+.hero__media img{width:100%;height:100%;object-fit:cover}
+/* Der Film liegt ueber dem Standbild und wird erst eingeblendet, wenn er
+   wirklich laeuft. So bleibt das Bild das LCP-Element und die Seite zeigt
+   ohne JS, ohne Video und bei reduzierter Bewegung denselben Rahmen. */
+.hero__film{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  display:block;opacity:0;transition:opacity .9s var(--ease-4);
+}
+.hero__film.is-on{opacity:1}
+/* Abdunklung nur im Vollbild: bei --fp = 1 sitzt der Film im Rahmen und
+   die Flaeche ist weg, damit der Rahmen nicht dauerhaft grau liegt. */
+/* Zwei Schichten statt einer. Vorher lag ein reiner 180°-Verlauf ueber die
+   volle Breite — der musste so dunkel sein, wie es der Text links verlangt,
+   und hat damit auch die rechte Haelfte zugedeckt, wo gar kein Text steht.
+   Gemessen: in der Kopfzeile lag die Deckung bei .89, rechts auf halber
+   Hoehe bei .64; vom Raum war nichts mehr zu sehen.
+   Jetzt traegt die WAAGERECHTE Schicht den Textschutz (links stark, ab 64 %
+   Breite nichts mehr) und die SENKRECHTE nur noch den Grundton. Der Text
+   behaelt seinen Kontrast, der Raum kommt rechts frei. */
+.hero__scrim{
+  position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(46,10,24,.55) 0%,rgba(46,10,24,.55) 32%,rgba(46,10,24,0) 64%),
+    linear-gradient(180deg,rgba(46,10,24,.82) 0%,rgba(46,10,24,.19) 34%,rgba(46,10,24,.24) 72%,var(--ink) 100%);
+  /* Kubisch, nicht quadratisch und erst recht nicht linear. Linear fiel der
+     Kontrast auf halbem Weg auf 3,58:1; mit dem helleren Verlauf oben reichte
+     auch 1 - fp² nicht mehr und bei einem Viertel der Strecke standen 4,31:1.
+     Dort liegt der Text noch voll auf dem Film — die Flaeche muss also laenger
+     halten und darf erst spaet freigeben. Der Anfangswert bleibt 1; dass es
+     oben trotzdem heller wirkt, macht der Verlauf, nicht die Kurve. */
+  opacity:calc(1 - var(--fp,1) * var(--fp,1) * var(--fp,1));
+}
+.hero__play{
+  position:absolute;inset:0;margin:auto;width:76px;height:76px;border-radius:50%;
+  background:var(--paper);color:var(--brand);display:grid;place-items:center;
+  transition:transform var(--dur) var(--ease-3),background-color var(--dur) var(--ease-4);
+}
+@media (hover:hover) and (pointer:fine){.hero__media:hover .hero__play{transform:scale(1.08);background:var(--blue)}}
+.hero__scrollhint{
+  position:absolute;left:50%;bottom:var(--sp-l);translate:-50% 0;z-index:2;
+  font-size:var(--fs--2);letter-spacing:.2em;text-transform:uppercase;color:var(--paper-50);
+  display:flex;flex-direction:column;align-items:center;gap:.6em;
+}
+.hero__scrollhint::after{content:'';width:1px;height:40px;background:currentColor;transform-origin:top;animation:hint 2.4s var(--ease-1) infinite}
+@keyframes hint{0%{transform:scaleY(0)}40%{transform:scaleY(1)}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* --- 1b Prozess: gepinnte Ueberschrift + Marquee-Band --- */
+.process{height:360vh;position:relative}
+.process__header{
+  position:sticky;top:0;height:100vh;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;
+  padding-inline:var(--pad);text-align:center;pointer-events:none;z-index:2;
+}
+.process__title{
+  max-width:18ch;color:var(--paper);
+  /* Lava: about-process-header-enter translateY(-100svh) -> 0, dann -leave opacity */
+  transform:translateY(calc((1 - var(--enter,1)) * -60svh));
+  opacity:var(--vis,1);
+}
+.process__band{
+  position:sticky;top:0;height:100vh;display:grid;align-content:center;overflow:hidden;z-index:1;
+}
+.band{display:flex;gap:var(--gutter);width:max-content;will-change:transform}
+.band__item{
+  flex:0 0 auto;width:min(46vw,620px);aspect-ratio:16/10;overflow:hidden;border-radius:var(--radius);
+  background:var(--ink);
+}
+.band__item img{width:100%;height:100%;object-fit:cover;transform:scale(1.06)}
+.band__item:nth-child(even){width:min(26vw,340px);aspect-ratio:3/4;align-self:flex-end}
+
+/* --- 1c Galerie-Gegenlauf mit zentralem Satz --- */
+/* KEIN overflow:hidden hier — ein beschnittener Vorfahr nimmt dem Pin
+   seinen Scroll-Container, position:sticky bleibt dann wirkungslos.
+   Geklammert wird im .gallery__pin. */
+.gallery{position:relative;height:300vh}
+.gallery__pin{position:sticky;top:0;height:100vh;overflow:hidden}
+.gallery__bg{position:absolute;inset:0;z-index:0}
+.gallery__bg img{width:100%;height:100%;object-fit:cover;opacity:.5}
+.gallery__bg::after{content:'';position:absolute;inset:0;background:var(--ink-50)}
+.gallery__claim{
+  position:absolute;inset:0;z-index:2;display:grid;place-items:center;
+  padding-inline:var(--pad);text-align:center;
+}
+.gallery__claim p{max-width:20ch;color:var(--paper);text-shadow:0 2px 30px rgba(46,10,24,.6)}
+.gallery__items{position:absolute;inset:-20svh 0;z-index:1}
+.gal{
+  position:absolute;width:var(--w);overflow:hidden;border-radius:var(--radius);
+  /* Lava: gallery-item-move translateY(-20svh) -> translateY(20svh) */
+  transform:translateY(calc((var(--p,.5) - .5) * 40svh * var(--f,1)));
+}
+.gal img{width:100%;aspect-ratio:var(--ar,4/3);object-fit:cover;
+  /* Lava: gallery-image-move translate 0 10% -> 0 -10% (gegenlaeufig) */
+  translate:0 calc((.5 - var(--p,.5)) * 20%);
+  scale:1.2;
+}
+
+/* --- 1d Manifest: Bildkarussell + Statement auf heller Textur --- */
+.manifest{position:relative;background:var(--paper);color:var(--brand);padding-block:var(--sp-5xl)}
+.manifest__texture{position:absolute;inset:0;opacity:.5;mix-blend-mode:multiply;pointer-events:none}
+.manifest__inner{position:relative;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:var(--sp-3xl) var(--sp-2xl);align-items:start}
+.carousel{position:relative}
+.carousel__viewport{position:relative;aspect-ratio:1/1;overflow:hidden;border-radius:var(--radius);background:var(--line)}
+.carousel__slide{position:absolute;inset:0;opacity:0;transition:opacity 1s var(--ease-1)}
+.carousel__slide[data-active="true"]{opacity:1}
+.carousel__slide img{width:100%;height:100%;object-fit:cover}
+.carousel__bar{margin-top:var(--sp-s);display:flex;align-items:center;gap:var(--sp-s)}
+.carousel__toggle{
+  width:46px;height:46px;border-radius:50%;background:var(--ink);color:var(--paper);
+  display:grid;place-items:center;flex:0 0 auto;
+  transition:background-color var(--dur) var(--ease-4)}
+@media (hover:hover) and (pointer:fine){.carousel__toggle:hover{background:var(--brand)}}
+.carousel__dots{flex:1;display:flex;gap:var(--sp-2xs);background:var(--ink);border-radius:999px;padding:.9rem 1.1rem;align-items:center}
+.carousel__dot{position:relative;height:3px;flex:0 0 10px;background:var(--paper-20);border-radius:999px;transition:flex-basis .6s var(--ease-1),background-color .6s var(--ease-1)}
+/* Der sichtbare Strich bleibt 3px flach wie in der Referenz; getippt wird eine
+   unsichtbare Flaeche darum. Seitlich nur die halbe Luecke, damit sich die
+   Trefferflaechen benachbarter Striche nicht ueberlappen. */
+.carousel__dot::before{content:'';position:absolute;inset:-1.1rem calc(var(--sp-2xs) / -2)}
+.carousel__dot[data-active="true"]{flex-basis:64px;background:var(--paper)}
+.manifest__statement{font-size:var(--fs-2);line-height:1.3;font-family:'Lora',serif;max-width:22ch}
+.manifest__body{margin-top:var(--sp-xl);padding-left:var(--sp-m);border-left:1px solid var(--line)}
+
+/* --- 1e Rad: gepinnte Ueberschrift + rotierender Umlauf --- */
+.wheel{position:relative;height:360vh;background:var(--ink)}
+.wheel__pin{position:sticky;top:0;height:100vh;overflow:hidden}
+.wheel__title{position:absolute;left:var(--pad);top:calc(var(--header-h) + var(--sp-xl));z-index:3;max-width:16ch;color:var(--paper)}
+.wheel__stage{position:absolute;left:50%;top:62vh;translate:-50% 0;width:min(132vmin,1500px);aspect-ratio:1;z-index:1}
+.wheel__ring{
+  position:absolute;inset:0;border:1px solid var(--paper-20);border-radius:50%;
+  /* Lava: wheel-block-wheel-rotate rotate(0) -> rotate(-1turn) */
+  transform:rotate(calc(var(--p,0) * -1turn));
+}
+.wheel__spoke{position:absolute;left:50%;top:50%;width:50%;height:0;transform-origin:left center;transform:rotate(var(--a))}
+.wheel__node{
+  position:absolute;right:-22px;top:-22px;width:44px;height:44px;border-radius:50%;
+  border:1px solid var(--paper-50);background:rgba(46,10,24,.35);color:var(--paper);
+  font-size:var(--fs--1);display:grid;place-items:center;
+  transform:rotate(calc(var(--p,0) * 1turn)) rotate(calc(-1 * var(--a)));
+}
+.wheel__dot{position:absolute;right:46px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.wheel__labels{position:absolute;inset:0;z-index:2;display:grid;place-items:center;padding-inline:var(--pad);text-align:center}
+.wheel__label{
+  grid-area:1/1;max-width:26ch;color:var(--paper);opacity:0;
+  transition:opacity .28s var(--ease-1),transform .28s var(--ease-1);
+  transform:translateY(12px);
+}
+.wheel__label[data-active="true"]{
+  opacity:1;transform:none;
+  transition:opacity .45s var(--ease-1) .2s,transform .45s var(--ease-1) .2s;
+}
+.wheel__label span{display:block;font-size:var(--fs--1);color:var(--blue);letter-spacing:.16em;text-transform:uppercase;margin-bottom:var(--sp-xs);font-family:'Be Vietnam Pro',sans-serif}
+
+/* --- 1f Reveal-Block: eingesetztes Panel, Wort-fuer-Wort --- */
+.reveal{position:relative;height:260vh;background:var(--paper)}
+.reveal__pin{position:sticky;top:0;height:100vh;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding:var(--sp-xl) var(--pad)}
+.reveal__panel{
+  position:relative;width:100%;max-width:var(--grid-whole);height:min(76vh,760px);
+  background:var(--ink);overflow:hidden;border-radius:var(--radius);
+  display:grid;place-items:center;
+  /* Lava: reveal-block-bg-enter — Panel waechst in die Flaeche */
+  scale:calc(.86 + var(--p) * .14);
+}
+.reveal__topo{position:absolute;inset:0;opacity:.3}
+.reveal__text{
+  position:relative;z-index:1;text-align:center;max-width:22ch;
+  font-family:'Lora',serif;font-size:var(--fs-4);line-height:1.12;letter-spacing:-.02em;
+}
+.reveal__text .w{color:var(--paper-20);transition:color .35s var(--ease-1)}
+.reveal__text .w[data-on="true"]{color:var(--paper)}
+
+/* --- 1g Termin-Karte --- */
+.appoint{background:var(--paper);color:var(--brand);padding-block:var(--sp-4xl)}
+.appoint__card{
+  display:grid;grid-template-columns:minmax(0,4fr) minmax(0,6fr);
+  background:var(--blue);border-radius:var(--radius);overflow:hidden;align-items:stretch;
+}
+.appoint__media{position:relative;aspect-ratio:4/5;overflow:hidden}
+.appoint__media img{width:100%;height:100%;object-fit:cover}
+.appoint__body{padding:var(--sp-2xl);display:flex;flex-direction:column;justify-content:center;gap:var(--sp-m)}
+
+/* =========================================================
+   2 — BESCHWERDEBILDER (Lava: Portfolio-Raster, 3 Spalten, 1px)
+   ========================================================= */
+.cases{background:var(--paper);color:var(--brand);padding-block:var(--sp-4xl) 0}
+.cases__head{margin-bottom:var(--sp-3xl)}
+.cases__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+.case{position:relative;aspect-ratio:1;overflow:hidden;background:var(--paper);display:block}
+.case img{width:100%;height:100%;object-fit:cover;transition:transform .9s var(--ease-1)}
+.case__chip{
+  position:absolute;left:var(--sp-s);bottom:var(--sp-s);z-index:1;
+  background:var(--paper);color:var(--brand);padding:.5em 1em;border-radius:var(--radius);
+  font-size:var(--fs--2);letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+}
+.case__more{
+  position:absolute;right:var(--sp-s);top:var(--sp-s);z-index:1;opacity:0;
+  transition:opacity var(--dur) var(--ease-4),transform var(--dur) var(--ease-4);transform:translateY(-6px);
+}
+@media (hover:hover) and (pointer:fine){
+  .case:hover img{transform:scale(1.05)}
+  .case:hover .case__more{opacity:1;transform:none}
+}
+.case--tall{aspect-ratio:1/2;grid-row:span 2}
+
+/* =========================================================
+   3 — VERFAHREN (Lava: Service-Liste + aufziehendes Bildpanel)
+   ========================================================= */
+.services{background:var(--paper);color:var(--brand);padding-block:var(--sp-4xl)}
+.services__stage{position:relative;margin-bottom:var(--sp-2xl)}
+.services__panel{
+  position:relative;height:min(46vh,420px);overflow:hidden;border-radius:var(--radius);background:var(--ink);
+}
+.services__panel figure{position:absolute;inset:0;opacity:0;transition:opacity .7s var(--ease-1)}
+.services__panel figure[data-active="true"]{opacity:1}
+.services__panel img{width:100%;height:100%;object-fit:cover;opacity:.62}
+.services__panel figcaption{
+  position:absolute;left:var(--sp-xl);bottom:var(--sp-xl);color:var(--paper);
+  font-family:'Lora',serif;font-size:var(--fs-3);
+}
+.service{
+  display:grid;grid-template-columns:4.5rem minmax(0,1fr) auto;align-items:center;gap:var(--sp-m);
+  padding-block:var(--sp-m);border-top:1px solid var(--line);
+  color:var(--muted);
+  transition:color var(--dur) var(--ease-4);
+  width:100%;text-align:left;
+}
+.service:last-child{border-bottom:1px solid var(--line)}
+/* Gold ist auf Creme nur fuer Punkte und Linien erlaubt (3,6:1) — eine
+   Ordnungsziffer ist Schrift, also --accent. */
+.service__no{font-size:var(--fs--1);color:var(--accent);font-variant-numeric:tabular-nums}
+.service__name{font-family:'Lora',serif;font-size:var(--fs-2);color:var(--brand);line-height:1.2;overflow-wrap:break-word;hyphens:auto;transition:color var(--dur) var(--ease-4)}
+.service__arrow{
+  width:44px;height:44px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;
+  transition:background-color var(--dur) var(--ease-4),color var(--dur) var(--ease-4),border-color var(--dur) var(--ease-4),transform var(--dur) var(--ease-4);
+}
+@media (hover:hover) and (pointer:fine){
+  .service:hover .service__name{color:var(--accent)}
+  .service:hover .service__arrow{background:var(--brand);color:var(--paper);border-color:var(--brand);transform:rotate(45deg)}
+}
+.service[aria-expanded="true"] .service__name{color:var(--accent)}
+.service__detail{
+  /* ease-4 statt ease-1: ease-1 startet flach und haette das Aufklappen erst
+     nach 150ms zur Haelfte gebracht. ease-4 ist die Kurve, die die Referenz
+     selbst fuer Interaktionen nimmt — nach 100ms sind 71% der Strecke gelaufen. */
+  display:grid;grid-template-rows:0fr;transition:grid-template-rows .55s var(--ease-4);
+  border-bottom:1px solid var(--line);
+}
+.service__detail[data-open="true"]{grid-template-rows:1fr}
+.service__detail > div{overflow:hidden}
+.service__detail p{padding:0 0 var(--sp-l) 4.5rem;max-width:68ch;color:var(--muted)}
+
+.svccards{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gutter);margin-top:var(--sp-3xl)}
+.svccard{position:relative;aspect-ratio:3/4;overflow:hidden;border-radius:var(--radius);background:var(--ink);display:block}
+.svccard img{width:100%;height:100%;object-fit:cover;opacity:.66;transition:transform .9s var(--ease-1),opacity var(--dur) var(--ease-4)}
+.svccard__no{position:absolute;left:var(--sp-s);top:var(--sp-s);color:var(--paper);font-size:var(--fs--1);z-index:1}
+.svccard__name{position:absolute;left:var(--sp-s);bottom:var(--sp-s);right:var(--sp-s);z-index:1;color:var(--paper);font-family:'Lora',serif;font-size:var(--fs-1);line-height:1.15}
+.svccard__arrow{position:absolute;right:var(--sp-s);top:var(--sp-s);z-index:1;width:44px;height:44px;border-radius:50%;background:var(--paper);color:var(--brand);display:grid;place-items:center;transition:transform var(--dur) var(--ease-4)}
+@media (hover:hover) and (pointer:fine){
+  .svccard:hover img{transform:scale(1.05);opacity:.5}
+  .svccard:hover .svccard__arrow{transform:rotate(45deg)}
+}
+
+/* =========================================================
+   4 — TEAM (Lava: versetztes Raster mit Gegenlauf-Parallax)
+   ========================================================= */
+.team{background:var(--paper);color:var(--brand);padding-block:var(--sp-4xl);overflow:hidden}
+.team__intro{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:var(--sp-2xl);align-items:start;margin-bottom:var(--sp-4xl)}
+.team__intro figure{aspect-ratio:4/3;overflow:hidden;border-radius:var(--radius)}
+.team__intro img{width:100%;height:100%;object-fit:cover}
+.tabs{display:flex;gap:var(--sp-l);border-bottom:1px solid var(--line);margin-bottom:var(--sp-2xl)}
+.tab{
+  position:relative;padding-block:var(--sp-xs);font-size:var(--fs--1);color:var(--muted);
+  transition:color var(--dur) var(--ease-4);
+}
+.tab::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--brand);transform:scaleX(0);transform-origin:left;transition:transform var(--dur) var(--ease-4)}
+.tab[aria-selected="true"]{color:var(--brand)}
+.tab[aria-selected="true"]::after{transform:scaleX(1)}
+@media (hover:hover) and (pointer:fine){.tab:hover{color:var(--brand)}}
+
+.team__grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3xl) var(--sp-2xl)}
+.member{
+  /* Lava: team-member-move-item-move — versetzter Gegenlauf je Spalte */
+  transform:translateY(calc((var(--p,.5) - .5) * var(--shift,0px)));
+}
+/* Versatz haengt an der SICHTBAREN Position (JS), nicht an :nth-child —
+   ausgeblendete Karten wuerden sonst mitzaehlen und die gefilterte Reihe
+   um eine halbe Hoehe nach unten schieben. */
+.member--shift{margin-top:var(--sp-5xl)}
+html:not(.js) .member:nth-child(even){margin-top:var(--sp-5xl)}
+.member__frame{position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:var(--radius);background:var(--blue)}
+/* Kein Zoom und kein Versatz im Bild selbst. Die Portraets sind bis an den
+   Rand belichtet — der Scheitel steht bei 3,6 % der Bildhoehe. scale(1.2) mit
+   +/-5 % Versatz kappt davon 5 bis 15 %, also bei jeder Scrollposition den
+   Kopf. Die Lava-Bewegung des Teamrasters steckt ohnehin in .member (Karte),
+   nicht im Bild; die Zuschnitte sind exakt 4:5, cover schneidet damit nichts. */
+.member__frame img{
+  width:100%;height:100%;object-fit:cover;
+  transition:transform var(--dur) var(--ease-4);
+}
+@media (hover:hover) and (pointer:fine){.member:hover .member__frame img{transform:scale(1.05)}}
+/* Bleibt fuer die Karte "Praxisteam": dafuer gibt es keine Aufnahme, und es
+   wurde auch keine erzeugt. Die feine Schraffur macht die Leerstelle als
+   Absicht lesbar — eine blanke Flaeche wirkt wie ein fehlendes Bild. */
+.member__ph{
+  position:absolute;inset:0;display:grid;place-items:center;gap:var(--sp-s);
+  align-content:center;
+  background:
+    repeating-linear-gradient(135deg,rgba(76,18,40,.055) 0 1px,transparent 1px 11px),
+    var(--blue);
+  color:var(--brand);text-align:center;padding:var(--sp-l);
+}
+.member__ph::after{
+  content:'';position:absolute;inset:var(--sp-s);
+  border:1px solid rgba(76,18,40,.12);pointer-events:none;
+}
+.member__mono{font-family:'Lora',serif;font-size:var(--fs-4);letter-spacing:.06em;line-height:1}
+.member__phnote{font-size:var(--fs--2);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.member__arrow{position:absolute;right:var(--sp-s);top:var(--sp-s);z-index:1}
+.member__name{margin-top:var(--sp-s);font-family:'Lora',serif;font-size:var(--fs-1)}
+.member__role{margin-top:.3em;font-size:var(--fs--1);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.member__vita{margin-top:var(--sp-s);font-size:var(--fs--1);color:var(--muted);max-width:44ch}
+
+/* =========================================================
+   5 — ABRECHNUNG (Lava: Cenradis, gepinnte Ueberschrift + Tabs)
+   ========================================================= */
+/* Kurze Sektion auf derselben Flaeche wie die naechste: untere Luft gekuerzt,
+   sonst steht zwischen Kostenpanel und FAQ ein Drittel Bildschirm leeres Papier. */
+.billing{background:var(--paper);color:var(--brand);padding-block:var(--sp-4xl) var(--sp-2xl)}
+.billing__layout{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:var(--sp-2xl)}
+.billing__sticky{position:sticky;top:calc(var(--header-h) + var(--sp-l));align-self:start}
+.billing__panel[hidden]{display:none}
+/* Umbruch erlaubt: der laengste Reiter ("Erster Termin, mindestens 60 Minuten")
+   wurde sonst drei Zeilen hoch gegen den nicht umbrechenden Satz rechts
+   gequetscht. Faellt der Satz um, haelt margin-left:auto ihn trotzdem rechts. */
+.price{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:var(--sp-2xs) var(--sp-m);margin-block:var(--sp-l) var(--sp-m)}
+.price__name{font-family:'Lora',serif;font-size:var(--fs-2);line-height:1.15;display:flex;align-items:baseline;gap:var(--sp-s);text-wrap:balance}
+.price__name::before{content:'';width:12px;height:12px;border-radius:50%;background:var(--gold);flex:0 0 auto;translate:0 -.1em}
+.price__value{font-family:'Lora',serif;font-size:var(--fs-2);white-space:nowrap;margin-left:auto;color:var(--accent)}
+.ticks li{display:grid;grid-template-columns:1.6rem 1fr;padding-block:.45em;color:var(--muted);font-size:var(--fs--1)}
+.ticks li::before{content:'–';color:var(--gold)}
+.billing__note{margin-top:var(--sp-l);font-size:var(--fs--1);color:var(--muted)}
+
+/* =========================================================
+   6 — FRAGEN (Akkordeon)
+   ========================================================= */
+.faq{background:var(--paper);color:var(--brand);padding-block:var(--sp-4xl)}
+.faq__layout{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:var(--sp-2xl)}
+.faq__group + .faq__group{margin-top:var(--sp-2xl)}
+.faq__grouptitle{font-size:var(--fs--1);letter-spacing:.16em;text-transform:uppercase;color:var(--tertiary);margin-bottom:var(--sp-s)}
+.qa{border-top:1px solid var(--line)}
+.qa:last-child{border-bottom:1px solid var(--line)}
+.qa__q{
+  width:100%;display:grid;grid-template-columns:1fr 2rem;gap:var(--sp-m);align-items:center;
+  padding-block:var(--sp-m);text-align:left;font-size:var(--fs-1);line-height:1.3;
+  transition:color var(--dur) var(--ease-4);
+}
+@media (hover:hover) and (pointer:fine){.qa__q:hover{color:var(--accent)}}
+.qa__sign{position:relative;width:16px;height:16px;justify-self:end}
+.qa__sign::before,.qa__sign::after{content:'';position:absolute;inset:50% 0 auto 0;height:1px;background:currentColor;transition:transform var(--dur) var(--ease-4)}
+.qa__sign::after{transform:rotate(90deg)}
+.qa__q[aria-expanded="true"] .qa__sign::after{transform:rotate(0)}
+.qa__a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s var(--ease-4)}
+.qa__a[data-open="true"]{grid-template-rows:1fr}
+.qa__a > div{overflow:hidden}
+.qa__a p{padding-bottom:var(--sp-l);max-width:70ch;color:var(--muted)}
+
+/* =========================================================
+   7 — ANFAHRT (eigene SVG-Karte, kein fremder Karten-Einbinder)
+   ========================================================= */
+.here{background:var(--paper);color:var(--brand);padding-block:var(--sp-4xl)}
+.here__layout{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--sp-2xl);margin-top:var(--sp-3xl);align-items:start}
+.map{position:relative;background:var(--paper-hi);border:1px solid var(--line);border-radius:var(--radius);aspect-ratio:4/3;overflow:hidden}
+.map svg{width:100%;height:100%;display:block}
+.map__note{position:absolute;left:var(--sp-s);bottom:var(--sp-s);font-size:var(--fs--2);color:var(--muted);background:var(--paper-80);padding:.4em .7em;border-radius:var(--radius)}
+.here__text{padding-left:var(--sp-m);border-left:1px solid var(--line)}
+.here__photos{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--gutter);margin-top:var(--sp-2xl)}
+.here__photos figure{aspect-ratio:16/10;overflow:hidden;border-radius:var(--radius)}
+.here__photos img{width:100%;height:100%;object-fit:cover}
+
+/* =========================================================
+   8 — FUSS (Lava: Riesen-Wortmarke, sticky)
+   ========================================================= */
+.foot{background:var(--ink);color:var(--paper);padding-block:var(--sp-3xl) var(--sp-xl);position:relative}
+.foot__layout{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:var(--sp-3xl) var(--sp-2xl)}
+.foot__markwrap{position:sticky;top:160px;align-self:start}
+.foot__mark{
+  font-family:'Lora',serif;font-size:clamp(2.6rem,7vw,6.2rem);line-height:.95;
+  letter-spacing:.02em;text-transform:uppercase;color:var(--blue);
+  transform:translateY(calc(var(--p) * -40px));
+}
+.foot__mark small{display:block;font-family:'Be Vietnam Pro',sans-serif;font-size:.17em;letter-spacing:.42em;color:var(--paper-50);margin-top:1.1em;font-weight:400}
+.foot__col h3{font-size:var(--fs--1);letter-spacing:.16em;text-transform:uppercase;color:var(--tertiary);margin-bottom:var(--sp-s)}
+.foot__col + .foot__col{margin-top:var(--sp-xl)}
+.foot__col a{border-bottom:1px solid var(--paper-20);transition:border-color var(--dur) var(--ease-4)}
+@media (hover:hover) and (pointer:fine){.foot__col a:hover{border-color:var(--paper)}}
+.foot__big{font-family:'Lora',serif;font-size:var(--fs-2)}
+.hours{display:grid;grid-template-columns:auto 1fr;gap:.3em var(--sp-m);font-size:var(--fs--1)}
+.hours dt{color:var(--paper-50)}
+.foot__bottom{
+  margin-top:var(--sp-3xl);padding-top:var(--sp-m);border-top:1px solid var(--paper-20);
+  display:flex;flex-wrap:wrap;gap:var(--sp-m);justify-content:space-between;
+  font-size:var(--fs--1);color:var(--paper-50);
+}
+.foot__bottom nav{display:flex;gap:var(--sp-m);flex-wrap:wrap}
+
+/* =========================================================
+   Rechtliche Seiten — ruhige Lesespalte auf Creme
+   ========================================================= */
+.legal{background:var(--paper);color:var(--brand);padding-block:calc(var(--header-h) + var(--sp-3xl)) var(--sp-3xl)}
+.legal__inner{max-width:72ch;margin-inline:auto}
+.legal h1{margin-bottom:var(--sp-m)}
+.legal h2{
+  font-family:'Lora',Georgia,serif;font-size:var(--fs-1);font-weight:400;
+  line-height:1.2;letter-spacing:-.01em;
+  margin-top:var(--sp-xl);margin-bottom:var(--sp-xs);
+  padding-top:var(--sp-s);border-top:1px solid var(--line);
+}
+.legal h3{font-size:var(--fs-0);font-weight:600;margin-top:var(--sp-m);margin-bottom:var(--sp-2xs)}
+.legal p,.legal li{color:var(--muted)}
+.legal p + p{margin-top:.9em}
+.legal a{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
+.legal ul{margin-top:var(--sp-xs);display:grid;gap:var(--sp-2xs)}
+.legal ul li{padding-left:1.1em;position:relative}
+.legal ul li::before{content:"";position:absolute;left:0;top:.62em;width:5px;height:5px;background:var(--gold)}
+.legal dl{margin-top:var(--sp-xs);display:grid;grid-template-columns:minmax(10rem,auto) 1fr;gap:var(--sp-2xs) var(--sp-m)}
+.legal dt{font-weight:500;color:var(--brand)}
+.legal dd{color:var(--muted)}
+.legal__gap{
+  margin-top:var(--sp-xl);padding:var(--sp-m);
+  background:var(--blue);border-left:3px solid var(--gold);border-radius:var(--radius);
+}
+.legal__gap h2{margin-top:0;padding-top:0;border-top:0}
+.legal__gap p,.legal__gap li{color:var(--brand)}
+.legal__back{display:inline-block;margin-top:var(--sp-xl);font-size:var(--fs--1)}
+@media (max-width:620px){
+  .legal dl{grid-template-columns:1fr;gap:0}
+  .legal dd{margin-bottom:var(--sp-xs)}
+}
+
+/* Hinweisband Prototyp — fest am unteren Rand, damit die fixe Kopfzeile
+   es nicht verdeckt und der Hinweis auf jeder Scrollposition steht. */
+.proto{
+  position:fixed;inset:auto 0 0 0;z-index:95;
+  background:var(--brand);color:var(--paper);font-size:var(--fs--2);
+  padding:var(--sp-2xs) var(--pad);text-align:center;line-height:1.35;
+  text-wrap:balance;
+}
+/* Platz, damit das Band die letzte Fusszeile nicht ueberdeckt */
+.foot__bottom,.legal__back{margin-bottom:var(--sp-2xl)}
+
+/* =========================================================
+   Scroll-Kopplung — alles rechnet aus --p, geschrieben vom rAF-Loop.
+   Entspricht den animation-timeline-Keyframes der Referenz.
+   ========================================================= */
+
+/* Lava: hero-video-preview-leave — Vorschau kollabiert zur Mitte.
+   Der Abgang sitzt jetzt hinter dem Einlauf des Films: bis .5 zieht sich
+   der Film in den Rahmen, bis .75 steht die Seite still, danach faehrt
+   alles zusammen nach oben raus. */
+.hero__inner{
+  transform:translateY(calc(var(--p) * -12vh));
+  opacity:calc(1 - max(0,(var(--p) - .75)) * 4);
+}
+/* Vollbild → Rahmen: skaliert wird um die Rahmenmitte, verschoben um den
+   Versatz zur Bildschirmmitte. --film-dx/-dy/-s misst app.js pro
+   Fenstergroesse; ohne diese Werte steht der Film sofort im Rahmen. */
+.hero__media{
+  transform:
+    translate(
+      calc(var(--film-dx,0px) * (1 - var(--fp))),
+      calc(var(--film-dy,0px) * (1 - var(--fp)) + max(0,(var(--p) - .75)) * -30vh)
+    )
+    scale(calc(1 + (var(--film-s,1) - 1) * (1 - var(--fp))));
+  clip-path:inset(calc(max(0,(var(--p) - .78)) * 207%) round var(--radius));
+}
+.hero__bg img{scale:calc(1 + var(--p) * .12)}
+.hero__scrollhint{opacity:calc(1 - var(--p) * 4)}
+
+/* Lava: about-process-carousel-move translate(calc(-100% + 275vw)) —
+   --run setzt app.js in px (scrollWidth - Viewport), damit das Band
+   genau einmal durchlaeuft und nicht ins Leere faehrt. */
+.band{transform:translateX(calc(var(--p) * -1 * var(--run,0px)))}
+
+@media (prefers-reduced-motion:reduce){
+  .hero__inner,.hero__media,.hero__bg img,.band{transform:none;opacity:1;clip-path:none;scale:1}
+  .hero__scrollhint{opacity:1}
+  /* Der Film wird gar nicht erst geladen (app.js haengt keine Quelle ein);
+     die Flaeche daneben muss trotzdem weg, sonst liegt sie dauerhaft dunkel. */
+  .hero__film{display:none}
+  .hero__scrim{opacity:0}
+}
+
+/* =========================================================
+   Reveal beim Scrollen (Grundschicht)
+   ========================================================= */
+[data-rev]{opacity:0;transform:translateY(26px);transition:opacity .8s var(--ease-1),transform .8s var(--ease-1)}
+[data-rev][data-on="true"]{opacity:1;transform:none}
+[data-rev-wipe]{clip-path:inset(0 0 100% 0);transition:clip-path 1s var(--ease-1)}
+[data-rev-wipe][data-on="true"]{clip-path:inset(0 0 0 0)}
+
+/* =========================================================
+   Breakpoints
+   ========================================================= */
+@media (max-width:1100px){
+  .manifest__inner,.team__intro,.billing__layout,.faq__layout,.here__layout,.foot__layout,.appoint__card{grid-template-columns:1fr}
+  .billing__sticky{position:static}
+  .svccards{grid-template-columns:repeat(2,1fr)}
+  .appoint__media{aspect-ratio:16/9}
+}
+@media (max-width:860px){
+  :root{--header-h:72px}
+  .nav,.header__cta{display:none}
+  .burger{display:grid}
+  .hero{height:460vh}
+  /* Auf dem Telefon fuellt der Textblock schon 627 von 740 nutzbaren Pixeln —
+     fuer einen eigenen Rahmen neben dem Text ist kein Platz (der alte Rahmen
+     im Textfluss stand zu 94 % unterhalb der Viewportkante). Der Ruhezustand
+     ist deshalb eine eingerueckte Flaeche hinter dem Text, oberhalb des
+     Hinweisbands. */
+  .hero__media{
+    position:absolute;
+    top:calc(var(--header-h) + var(--sp-s));left:var(--pad);right:var(--pad);
+    bottom:calc(var(--sp-xl) + 2rem);
+    width:auto;height:auto;aspect-ratio:auto;translate:none;margin-top:0;
+  }
+  /* Der Film bleibt hier Hintergrund, also muss die Abdunklung auch im
+     Ruhezustand stehen bleiben — sonst liegt die Headline auf dem Bewegtbild
+     und ist nicht mehr lesbar. */
+  /* Der Verlauf wird in der Mitte flacher, weil dort der Fliesstext steht
+     und die hellen Raeume sonst durchschlagen. Die Werte sind nachgemessen,
+     nicht geschaetzt: mit .78 und einem Abfall bis .72 fiel der Vorspann am
+     Ende der Bahn auf 4,07:1 — unter den 4,5:1, die fuer 20 px Normalschrift
+     gelten. Der Film zeigt seit dem Tausch die echten, hell ausgeleuchteten
+     Praxisraeume; die Abdunklung muss das mittragen. */
+  .hero__scrim{
+    background:linear-gradient(180deg,var(--ink) 0%,rgba(46,10,24,.88) 38%,rgba(46,10,24,.88) 72%,var(--ink) 100%);
+    opacity:calc(1 - var(--fp,1) * var(--fp,1) * .18);
+  }
+  .hero__pin{align-content:start;padding-top:calc(var(--header-h) + var(--sp-l));overflow-y:hidden}
+  .hero__scrollhint{display:none}
+  .process{height:320vh}
+  .gallery{height:240vh}
+  .wheel{height:320vh}
+  .wheel__stage{width:160vmin;top:64vh}
+  .reveal{height:240vh}
+  .cases__grid{grid-template-columns:repeat(2,1fr)}
+  .case--tall{aspect-ratio:1;grid-row:auto}
+  .team__grid{grid-template-columns:1fr}
+  .member:nth-child(even){margin-top:0}
+  .member{transform:none !important}
+  .here__photos{grid-template-columns:1fr}
+  .service{grid-template-columns:3rem minmax(0,1fr) auto;gap:var(--sp-s)}
+  .service__detail p{padding-left:3rem}
+  .band__item{width:72vw}
+  .band__item:nth-child(even){width:48vw}
+}
+@media (max-width:860px){
+  .d1,.d2,.d3{hyphens:auto;overflow-wrap:break-word}
+}
+@media (max-width:520px){
+  .svccards{grid-template-columns:1fr}
+  .cases__grid{grid-template-columns:1fr}
+  .price{flex-direction:column;align-items:flex-start;gap:var(--sp-2xs)}
+  .foot__bottom{flex-direction:column}
+}
+
+/* =========================================================
+   Bewegung reduzieren — sanft abschalten, nicht hart auf null
+   ========================================================= */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.15s !important}
+  .hero,.process,.gallery,.wheel,.reveal{height:auto}
+  .hero__pin,.process__header,.process__band,.gallery__pin,.wheel__pin,.reveal__pin,.foot__markwrap{position:static;height:auto}
+  .hero__pin{min-height:auto;padding-block:var(--sp-4xl)}
+  /* Ohne Pin gibt es keine feste Hoehe mehr, gegen die sich die Flaeche
+     ausrichten koennte — hier geht der Rahmen zurueck in den Textfluss. */
+  .hero__media{position:relative;inset:auto;width:100%;height:auto;aspect-ratio:4/3;margin-top:var(--sp-xl)}
+  .process__header{padding-block:var(--sp-4xl)}
+  .process__title{transform:none;opacity:1}
+  .process__band{padding-block:var(--sp-2xl)}
+  .gallery__pin{min-height:70vh}
+  .wheel__pin{padding-block:var(--sp-4xl);min-height:auto}
+  .wheel__stage{position:relative;left:auto;top:auto;translate:none;margin:var(--sp-2xl) auto 0;width:min(90vmin,620px)}
+  .wheel__title{position:static;margin-inline:auto;max-width:var(--grid-whole);padding-inline:var(--pad)}
+  .wheel__labels{position:static;margin-top:var(--sp-xl)}
+  .wheel__label{opacity:1;transform:none;grid-area:auto;margin-bottom:var(--sp-m)}
+  .wheel__ring,.wheel__node{transform:none}
+  .reveal__pin{padding-block:var(--sp-3xl)}
+  .reveal__panel{scale:1;height:auto;padding-block:var(--sp-4xl)}
+  .reveal__text .w{color:var(--paper)}
+  .gal,.member,.gal img,.member__frame img,.foot__mark{transform:none !important;translate:none !important}
+  .gallery__items{position:relative;inset:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gutter)}
+  .gal{position:relative;width:auto !important;left:auto !important;top:auto !important;right:auto !important;bottom:auto !important}
+  .gal img{scale:1}
+  .band{animation:none}
+  [data-rev]{opacity:1;transform:none}
+  [data-rev-wipe]{clip-path:none}
+  .hero__scrollhint::after{animation:none}
+}
