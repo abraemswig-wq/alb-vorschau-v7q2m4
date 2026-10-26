@@ -441,7 +441,16 @@ html:not(.js) .process__title{transform:none;opacity:1}
    im Panel, und die drei Rahmen sind verschieden flach. Darum nach Bildplatz
    UND Datei adressiert und nicht etwa einmal pro Datei. */
 .services__panel img[src$="beh-01.webp"]{--op:50% 28%}  /* Arzt oben, Patient faellt bewusst ganz heraus */
-.services__panel img[src$="beh-03.webp"]{--op:50% 14%}
+/* 14 % war gegen die KAPUTTE Geometrie getuned: solange das Panel faelschlich
+   1050 px breit stehen blieb (die Rueckwaertsrechnung weiter unten), lag das
+   Fenster bei 2,5:1. Richtig ist es bei 1920 px 1290 breit — und dann passte
+   gar nichts mehr: bei 500 px Hoehe bleiben 29,05 % der Bildhoehe stehen, der
+   Kopf auf beh-03 misst 26,9 % und braucht oben wie unten 1,5 % Luft, macht
+   29,9 %. Es gibt dort KEIN object-position, das den Kopf ganz zeigt; erst
+   deshalb steht die Obergrenze unten auf 560 statt 500 px (32,5 % Resthoehe).
+   Damit liegt py zwischen 8,0 % und 11,9 % — 11 % nimmt die Mitte und haelt
+   auch bei 1280 px, wo das Panel schmaler und damit hoeher wird. */
+.services__panel img[src$="beh-03.webp"]{--op:50% 11%}
 .services__panel img[src$="beh-05.webp"]{--op:50% 8%}
 .services__panel img[src$="bes-01.webp"]{--op:50% 26%}
 .band__item      img[src$="beh-03.webp"]{--op:50% 18%}  /* dazu noch scale(1.06) */
@@ -571,8 +580,16 @@ html:not(.js) .process__title{transform:none;opacity:1}
   display:grid;grid-template-columns:minmax(0,4fr) minmax(0,6fr);
   background:var(--blue);border-radius:var(--radius);overflow:hidden;align-items:stretch;
 }
-.appoint__media{position:relative;aspect-ratio:4/5;overflow:hidden}
-.appoint__media img{width:100%;height:100%;object-fit:cover}
+/* `aspect-ratio` an einem GESTRECKTEN Rasterfeld rechnet rueckwaerts und wird
+   damit zur Breitenangabe: die Zeilenhoehe kommt vom laengeren Textfeld
+   (gemessen 792 px), daraus macht 4/5 eine Breite von 633 px — 117 px mehr,
+   als die 4fr-Spalte hergibt. `overflow:hidden` sitzt an der Karte, nicht am
+   Feld, also lief das Bild ueber den Text statt abgeschnitten zu werden.
+   Darum die Breite festnageln und die Hoehe strecken lassen; das Verhaeltnis
+   ergibt sich dann aus der Textlaenge und kann nicht mehr nach aussen drueken.
+   Unter 1101 px stapelt die Karte ohnehin, dort gilt die Regel im Breakpoint. */
+.appoint__media{position:relative;width:100%;min-width:0;min-height:360px;overflow:hidden}
+.appoint__media img{width:100%;height:100%;object-fit:cover;object-position:var(--op,50% 50%)}
 .appoint__body{padding:var(--sp-2xl);display:flex;flex-direction:column;justify-content:center;gap:var(--sp-m)}
 
 /* =========================================================
@@ -612,9 +629,19 @@ html:not(.js) .process__title{transform:none;opacity:1}
    tools/messen_kopfanschnitt.py): bei 420 px bleiben 3 angeschnittene Koepfe,
    bei 460 px noch 2, ab 500 px keiner mehr. Statt einer festen Zahl deshalb
    eine Untergrenze fuer das Verhaeltnis — die haelt auch, wenn der Container
-   spaeter breiter wird. */
+   spaeter breiter wird.
+
+   DAZU DIE BREITE FESTNAGELN. `aspect-ratio` zusammen mit `min-height` und
+   `width:auto` rechnet rueckwaerts: sobald das Fenster schmaler wird, als die
+   420 px Mindesthoehe bei 5:2 verlangen, macht der Browser aus der Hoehe eine
+   BREITE — gemessen 420 x 2,5 = exakt 1050 px, und die blieben bei JEDER
+   Fensterbreite stehen. Folge: scrollWidth 1077 und eine Seite, die sich bei
+   880–1000 px waagerecht schieben liess. Dieselbe Mechanik hatte schon die
+   Termin-Karte (.appoint__media); `width:100%` nimmt dem Verhaeltnis die
+   Zustaendigkeit fuer die Breite und laesst ihm nur die Hoehe. */
 @media (min-width:861px){
-  .services__panel{height:auto;aspect-ratio:5/2;min-height:420px;max-height:500px}
+  .services__panel{width:100%;min-width:0;height:auto;aspect-ratio:5/2;
+    min-height:420px;max-height:560px}
 }
 .services__panel figure{position:absolute;inset:0;opacity:0;transition:opacity .7s var(--ease-1)}
 .services__panel figure[data-active="true"]{opacity:1}
@@ -914,7 +941,10 @@ html:not(.js) .member:nth-child(even){margin-top:var(--sp-5xl)}
   .manifest__inner,.team__intro,.billing__layout,.faq__layout,.here__layout,.foot__layout,.appoint__card{grid-template-columns:1fr}
   .billing__sticky{position:static}
   .svccards{grid-template-columns:repeat(2,1fr)}
-  .appoint__media{aspect-ratio:16/9}
+  /* Gestapelt gibt das Verhaeltnis die Hoehe vor — der Mindestwert von oben
+     wuerde hier dagegenarbeiten und das Bild auf dem Handy fast quadratisch
+     aufblasen. */
+  .appoint__media{aspect-ratio:3/2;min-height:0}
 }
 @media (max-width:860px){
   :root{--header-h:72px}
@@ -1019,4 +1049,129 @@ html:not(.js) .member:nth-child(even){margin-top:var(--sp-5xl)}
   [data-rev]{opacity:1;transform:none}
   [data-rev-wipe]{clip-path:none}
   .hero__scrollhint::after{animation:none}
+}
+
+/* =========================================================
+   THEMENSEITEN — Koerperregionen
+   (rueckenschmerzen-muenster.html, ellenbogenschmerzen-muenster.html)
+
+   Bewusst flach: keine Scroll-Choreografie, kein JS-Akkordeon. Der Grund ist
+   nicht Bequemlichkeit, sondern Reichweite — die Sammler von ChatGPT,
+   Perplexity und Claude fuehren KEIN JavaScript aus. Was auf diesen Seiten
+   steht, muss im ausgelieferten Quelltext stehen, also <details>/<summary>
+   statt .qa aus app.js.
+   ========================================================= */
+.topic{background:var(--paper);color:var(--brand)}
+
+.topic__crumb{padding-block:var(--sp-m) 0;font-size:var(--fs--1);color:var(--muted)}
+.topic__crumb ol{list-style:none;display:flex;flex-wrap:wrap;gap:.5em;padding:0;margin:0}
+.topic__crumb li+li::before{content:"›";margin-right:.5em;color:var(--tertiary)}
+.topic__crumb a{color:var(--muted)}
+.topic__crumb a:hover{color:var(--brand)}
+
+.topic__hero{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);
+  gap:var(--sp-xl);align-items:start;padding-block:var(--sp-xl) var(--sp-2xl)}
+/* `align-self:start` ist hier Absicht und kein Zufall: ein gestrecktes
+   Rasterfeld mit `aspect-ratio` rechnet die BREITE aus der Zeilenhoehe und
+   laeuft dann ueber die Nachbarspalte. Genau das ist der Termin-Karte
+   passiert (siehe .appoint__media). */
+.topic__fig{margin:0;align-self:start;width:100%;aspect-ratio:4/5;overflow:hidden;
+  border-radius:var(--radius);background:var(--line)}
+.topic__fig img{width:100%;height:100%;object-fit:cover;object-position:var(--op,50% 50%)}
+/* Gegenstueck zu den `&shy;` in build_regionen.py. `.d2` traegt unter 860 px
+   `hyphens:auto`; auf einem Text, der seine Trennstellen schon mitbringt, sind
+   das zwei Verfahren auf demselben Wort, und das automatische greift zuerst
+   („Rückenschmer-|zen und Be-|schwerden"). Hier also abschalten — die
+   Kompositumfuge weiss der Autor besser als der Algorithmus. */
+.topic__hero .d2{hyphens:manual;overflow-wrap:break-word}
+.topic__lead{font-size:var(--fs-1);line-height:1.45;font-weight:300;margin-top:var(--sp-m);max-width:34ch}
+
+.facts{margin-top:var(--sp-l);border-top:1px solid var(--line)}
+.facts dl{display:grid;grid-template-columns:minmax(9rem,auto) 1fr;gap:0;margin:0}
+/* --tertiary (#9B7D86) steht auf Creme bei 3,41:1. Fuer 15 px / Gewicht 300
+   verlangt WCAG 4,5:1 — „large text" faengt erst bei 24 px an, oder bei
+   18,67 px mit Gewicht >= 700; beides trifft hier nicht zu. Dass die Zeile in
+   Versalien steht, aendert daran nichts. --muted (#6A5159) ist derselbe Ton,
+   nur tief genug. Gemessen mit tools/messen_textkontrast.py. */
+.facts dt{padding:.7em 0;border-bottom:1px solid var(--line);font-size:var(--fs--1);
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.facts dd{padding:.7em 0;border-bottom:1px solid var(--line);margin:0;font-weight:300}
+
+.topic__sec{padding-block:var(--sp-xl)}
+.topic__sec+.topic__sec{border-top:1px solid var(--line)}
+.topic__sec h2{font-size:var(--fs-2);margin:0 0 .6em;max-width:22ch}
+.topic__sec h3{font-size:var(--fs-0);margin:0 0 .3em}
+
+.symptoms{list-style:none;padding:0;margin:0;display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-xs) var(--sp-l)}
+.symptoms li{padding-left:1.4em;position:relative;font-weight:300}
+.symptoms li::before{content:"";position:absolute;left:0;top:.62em;
+  width:.5em;height:.5em;border-radius:50%;background:var(--accent-soft)}
+
+.steps{list-style:none;counter-reset:s;padding:0;margin:0;display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-l)}
+.steps li{counter-increment:s}
+.steps li::before{content:counter(s,decimal-leading-zero);display:block;
+  font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs-1);
+  color:var(--accent-soft);margin-bottom:.3em}
+.steps p{font-weight:300;margin:.2em 0 0}
+
+.vcards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line)}
+.vcard{display:block;background:var(--paper);padding:var(--sp-m);
+  text-decoration:none;color:inherit;transition:background .3s var(--ease-1)}
+.vcard:hover{background:var(--paper-hi)}
+.vcard b{display:block;font-family:'Montserrat',sans-serif;font-size:var(--fs-0)}
+.vcard span{display:block;margin-top:.4em;font-weight:300;color:var(--muted)}
+
+.bgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-l)}
+.bgrid h3{font-size:var(--fs-0);margin:0 0 .4em;padding-top:.7em;border-top:2px solid var(--accent-soft)}
+.bgrid p{font-weight:300;margin:0;max-width:40ch}
+
+.alert{margin-top:var(--sp-l);border-left:3px solid var(--accent);
+  background:var(--paper-hi);padding:var(--sp-m)}
+.alert p{font-weight:300;margin:.4em 0 0}
+
+.qanat{border-top:1px solid var(--line)}
+.qanat details{border-bottom:1px solid var(--line)}
+.qanat summary{cursor:pointer;list-style:none;padding:.95em 2.2em .95em 0;
+  position:relative;font-family:'Montserrat',sans-serif;font-size:var(--fs-0)}
+.qanat summary::-webkit-details-marker{display:none}
+.qanat summary::after{content:"";position:absolute;right:.4em;top:50%;
+  width:.62em;height:.62em;border-right:1.5px solid currentColor;
+  border-bottom:1.5px solid currentColor;transform:translateY(-70%) rotate(45deg);
+  transition:transform .3s var(--ease-1)}
+.qanat details[open] summary::after{transform:translateY(-20%) rotate(-135deg)}
+.qanat details>div{padding:0 0 1.1em;font-weight:300;max-width:62ch}
+.qanat details>div p{margin:0 0 .7em}
+
+.topic__next{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:var(--sp-m);padding-block:var(--sp-xl)}
+
+@media (max-width:1100px){
+  .topic__hero{grid-template-columns:1fr;gap:var(--sp-l)}
+  /* NICHT 3/2. Die Motive sind 3:4-Hochformate; ein 1,5:1-Fenster laesst davon
+     nur 37 % der Bildhoehe uebrig und hat bei 390 px vier Koepfe angeschnitten
+     (gemessen mit tools/messen_kopfanschnitt.py). Quadratisch bleiben 75 %
+     stehen — nachgerechnet, nicht geschaetzt. */
+  /* Die Breite deckeln, nicht die Hoehe. Ein `max-height` wuerde bei gesetztem
+     Verhaeltnis die Breite stehen lassen und das Bild staerker beschneiden —
+     also genau die Koepfe wieder anschneiden, die das 1:1-Fenster gerettet hat.
+     Gemessen ohne Deckel: 1043 px hohes Quadrat bei 1100 px Fenster, 806 px bei
+     860 px. Das ist kein Bild mehr, das ist eine Wand. 520 px ist die Breite,
+     bei der das Quadrat auf dem Tablet neben dem Text noch als Abbildung liest. */
+  .topic__fig{aspect-ratio:1/1;order:-1;max-width:520px}
+  /* Gerechnet, nicht geschoben: das quadratische Fenster liegt mittig bei 12,5 %
+     der Bildhoehe, der Scheitel steht hier bei 9,5 % — also 3 % zu hoch. 28 %
+     statt 50 % setzt die Oberkante auf 7 % und laesst 2 % Luft. Nur hier unten;
+     im zweispaltigen Aufbau (4/5) passt die Mitte. */
+  .topic__fig img[src$="beh-03.webp"]{--op:50% 28%}
+  .vcards,.topic__next{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr;gap:var(--sp-m)}
+  .bgrid{grid-template-columns:1fr;gap:var(--sp-m)}
+}
+@media (max-width:620px){
+  .symptoms{grid-template-columns:1fr}
+  .facts dl{grid-template-columns:1fr}
+  .facts dt{border-bottom:0;padding-bottom:0}
 }

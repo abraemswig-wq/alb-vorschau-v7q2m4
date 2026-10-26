@@ -1,0 +1,59 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive,noimageindex">
+<title>Vorschau</title>
+<style>
+ html,body{height:100%;margin:0}
+ body{background:#2E0A18;color:#FAF5EC;display:grid;place-items:center;
+      font:400 16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+ form{width:min(92vw,330px);text-align:center}
+ p{margin:0 0 1.4rem;letter-spacing:.18em;text-transform:uppercase;
+   font-size:12px;color:rgba(250,245,236,.55)}
+ input{width:100%;padding:.85rem 1rem;border:1px solid rgba(250,245,236,.3);
+       border-radius:3px;background:transparent;color:inherit;font:inherit}
+ input:focus{outline:2px solid #B8822A;outline-offset:2px}
+ button{margin-top:.7rem;width:100%;padding:.85rem 1rem;border:0;border-radius:3px;
+        background:#FAF5EC;color:#4C1228;font:inherit;font-weight:600;cursor:pointer}
+ small{display:block;margin-top:1rem;min-height:1.2em;color:#E39BA8}
+</style></head><body>
+<form id="f"><p>Albersmeier &amp; Marx &middot; Entwurf</p>
+<input id="p" type="password" autocomplete="current-password" aria-label="Passwort" autofocus>
+<button type="submit">Ansehen</button><small id="m"></small></form>
+<script>
+(function(){
+ var DAT='d/rueckenschmerzen-muenster.dat',SALT='alb-lava-2026-10-25',KEY='alb-k';
+ var enc=new TextEncoder();
+ function b2a(b){var s='',u=new Uint8Array(b);
+   for(var i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return s}
+ function a2b(s){var u=new Uint8Array(s.length);
+   for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}
+ function zeigen(txt){document.open();document.write(txt);document.close()}
+ function oeffnen(key){
+   return fetch(DAT).then(function(r){return r.text()}).then(function(t){
+     var raw=a2b(atob(t.trim()));
+     return crypto.subtle.decrypt({name:'AES-GCM',iv:raw.slice(0,12)},key,raw.slice(12));
+   }).then(function(pt){zeigen(new TextDecoder().decode(pt))});
+ }
+ function ausPw(pw){
+   return crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveKey'])
+    .then(function(m){return crypto.subtle.deriveKey(
+      {name:'PBKDF2',salt:enc.encode(SALT),iterations:250000,hash:'SHA-256'},
+      m,{name:'AES-GCM',length:256},true,['decrypt'])});
+ }
+ var gespeichert=sessionStorage.getItem(KEY);
+ if(gespeichert){
+   crypto.subtle.importKey('raw',a2b(atob(gespeichert)),'AES-GCM',true,['decrypt'])
+     .then(oeffnen).catch(function(){sessionStorage.removeItem(KEY)});
+ }
+ document.getElementById('f').addEventListener('submit',function(e){
+   e.preventDefault();
+   var m=document.getElementById('m');m.textContent='';
+   ausPw(document.getElementById('p').value).then(function(key){
+     return oeffnen(key).then(function(){
+       return crypto.subtle.exportKey('raw',key).then(function(r){
+         sessionStorage.setItem(KEY,btoa(b2a(r)));});
+     });
+   }).catch(function(){m.textContent='Passwort stimmt nicht.';});
+ });
+})();
+</script></body></html>
