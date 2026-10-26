@@ -928,7 +928,21 @@ html:not(.js) .member:nth-child(even){margin-top:var(--sp-5xl)}
   .band__item:nth-child(even){width:48vw}
 }
 @media (max-width:860px){
-  .d1,.d2,.d3{hyphens:auto;overflow-wrap:break-word}
+  /* `hyphens:auto` war das Sicherheitsnetz aus der Zeit VOR dem `&shy;` in der
+     Hero-Headline. Jetzt sind es zwei Trennverfahren auf demselben Text, und
+     das automatische greift zuerst: es fuellt die Zeile gierig und trennt das
+     naechstbeste Wort. Bei 390 px stand so „Manuelle Me-|dizin und|Schmerz-|
+     medizin." da — zwei Trennstriche, einer davon mitten im Wort. Ohne das
+     automatische Verfahren bricht dieselbe Zeile an den Wortgrenzen:
+     „Manuelle|Medizin und|Schmerz-|medizin." — gleiche Zeilenzahl, ein
+     Trennstrich, und der sitzt an der Fuge des Kompositums.
+     `.d1` steht genau einmal auf der Seite (die Hero-Headline), das Netz
+     schuetzt hier also nichts anderes mehr. `.d2`/`.d3` behalten es: deren
+     Texte tragen kein `&shy;` und koennen jederzeit ein langes Kompositum
+     bekommen. `overflow-wrap:break-word` bleibt ueberall als letzte Reissleine
+     — es bricht notfalls ohne Strich, statt die Seite ueberlaufen zu lassen. */
+  .d1{hyphens:manual;overflow-wrap:break-word}
+  .d2,.d3{hyphens:auto;overflow-wrap:break-word}
 }
 @media (max-width:520px){
   .svccards{grid-template-columns:1fr}
