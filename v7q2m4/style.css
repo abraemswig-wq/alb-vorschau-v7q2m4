@@ -43,7 +43,15 @@
   --fs-2:clamp(1.5625rem,1.323rem + 1.0644vw,2.2211rem);
   --fs-3:clamp(1.9531rem,1.5867rem + 1.6285vw,2.9607rem);
   --fs-4:clamp(2.4414rem,1.894rem + 2.4327vw,3.9467rem);
-  --fs-5:clamp(3.0518rem,2.2484rem + 3.5703vw,5.2609rem);
+  /* Display-Stufe 11 % unter der Referenz, seit Montserrat Bold die Lora
+     Regular ersetzt. Das ist keine Geschmacksentscheidung: eine geometrische
+     Sans in 700 baut bei GLEICHER Pixelgroesse rund ein Achtel breiter und
+     liest deutlich groesser. Nachgemessen hat der Tausch die Hero-Headline bei
+     1440 px um 81 px verbreitert und ihren Abstand zum Film-Rahmen von +41 auf
+     -40 gedreht. Korrigiert wird an der GROESSE, nicht am Rahmen — der soll
+     laut Vorgabe groesser sein — und nicht am `14ch`-Zeilenmass, das als
+     Zeichenzahl ja richtig bleibt. */
+  --fs-5:clamp(2.716rem,2.0011rem + 3.1776vw,4.6822rem);
 
   /* ---- Space-Skala (fluid, 1:1 aus der Referenz) ---- */
   --sp-3xs:clamp(.25rem,.2273rem + .101vw,.3125rem);
@@ -75,9 +83,13 @@ html{-webkit-text-size-adjust:100%}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 body{
   margin:0;
-  font-family:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
   font-size:var(--fs-0);
-  font-weight:400;
+  /* Light. Das ist eine Markenvorgabe, kein Spielraum — aber sie kostet
+     Kontrast: duennere Striche werden beim Antialiasing stärker mit dem
+     Hintergrund verrechnet, und gemessen wird am Glyphenkern. Deshalb ist
+     nach diesem Tausch die Kontrastprobe neu gelaufen, nicht nur der Blick. */
+  font-weight:300;
   line-height:1.5;
   color:var(--paper);
   background:var(--ink);
@@ -114,7 +126,12 @@ html:not(.js) .process__title{transform:none;opacity:1}
 .grid12{display:grid;grid-template-columns:repeat(12,1fr);gap:var(--sp-3xl) var(--gutter)}
 
 /* ---------- Typo ---------- */
-.d1,.d2,.d3,.d4{font-family:'Lora',Georgia,'Times New Roman',serif;font-weight:400;line-height:1.08;letter-spacing:-.02em}
+/* Montserrat Bold statt Lora. Der Ersatz ist nicht nur ein anderer Name:
+   eine geometrische Sans in 700 baut bei gleicher Schriftgroesse deutlich
+   breiter als eine Serif in 400. Die Hero-Headline haengt an genau dieser
+   Breite — ihr Abstand zum Film-Rahmen wurde gerade justiert und ist nach
+   diesem Tausch neu gemessen worden. */
+.d1,.d2,.d3,.d4{font-family:'Montserrat',system-ui,-apple-system,sans-serif;font-weight:700;line-height:1.08;letter-spacing:-.02em}
 .d1{font-size:var(--fs-5)}
 .d2{font-size:var(--fs-4)}
 .d3{font-size:var(--fs-3);line-height:1.14}
@@ -122,9 +139,33 @@ html:not(.js) .process__title{transform:none;opacity:1}
 .lead{font-size:var(--fs-1);line-height:1.4}
 .small{font-size:var(--fs--1)}
 .eyebrow{
-  font-size:var(--fs--1);font-weight:600;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--tertiary);
+  /* Rubrikzeile: Open Sans Regular 400, nicht 600. Markenvorgabe. */
+  font-size:var(--fs--1);font-weight:400;letter-spacing:.16em;
+  text-transform:uppercase;
+  /* Farbe NICHT --tertiary (#9B7D86). Das sah ruhig aus und war unlesbar:
+     gegen --paper 3,4:1, gegen --ink 4,3:1 — beides unter 4,5:1, und das bei
+     der kleinsten Schriftgroesse der Seite. Der Wechsel auf 400 hat es
+     verschaerft (duennere Striche verrechnen sich beim Antialiasing staerker
+     mit dem Grund), war aber nicht die Ursache; die Zeile war vorher schon zu
+     blass. --muted ist derselbe Farbton, nur dunkel genug: 6,3:1 auf --paper. */
+  color:var(--muted);
 }
+/* Auf dunklen Flaechen traegt --muted nur 2,3:1. Dort gilt derselbe Ton wie
+   fuer den Fliesstext. Im Hero ist das nicht Kosmetik: dort liegt die Zeile auf
+   dem laufenden Film, und mit --tertiary hat die Glyphenkern-Probe ueber alle
+   drei Breiten 1,2 bis 2,9:1 gemessen — der Grund wird heller als die Schrift,
+   der Kontrast kollabiert. Gehakt wird an `data-surface`, nicht an der
+   Sektionsklasse: das Attribut steht an jeder Sektion und ist die einzige
+   Stelle, an der die Flaeche einmal entschieden wird. */
+[data-surface="dark"] .eyebrow{color:var(--paper-80)}
+/* Im Hero noch eine Stufe heller — und zwar wegen einer Ueberlagerung, die man
+   im Stylesheet nicht sieht: `.header::before` legt einen Verlauf in der
+   Flaechenfarbe ueber die oberen `--header-h + 3.5rem`, damit die Navigation
+   lesbar bleibt. Die Rubrikzeile steht direkt darunter und bekommt diesen
+   Schleier ab. Gemessen kostete das bei 390 px rund 0,8 Stufen: --paper-80 kam
+   dort auf 4,26:1 und lag damit knapp unter der Schwelle. Deckend sind es
+   wieder ueber 11:1, auch mit Schleier. */
+.hero .eyebrow{color:var(--paper)}
 .prose p + p{margin-top:1em}
 .prose{color:var(--muted);max-width:62ch}
 .on-dark .prose,.on-dark.prose{color:var(--paper-80)}
@@ -185,10 +226,14 @@ html:not(.js) .process__title{transform:none;opacity:1}
   display:flex;align-items:center;gap:var(--sp-l);
 }
 .wordmark{
-  font-family:'Lora',Georgia,serif;font-size:var(--fs-0);font-weight:500;
+  /* Der Name der Praxis — also Montserrat Bold, wie im Brief verlangt.
+     Achtung beim Nachjustieren: 700 plus .22em Sperrung plus Versalien plus
+     `nowrap` in einem Flex-Kopf ist die Kombination, die als erstes seitlich
+     ueberlaeuft. Die Breitenprobe ist genau deswegen nach dem Tausch gelaufen. */
+  font-family:'Montserrat',system-ui,sans-serif;font-size:var(--fs-0);font-weight:700;
   letter-spacing:.22em;text-transform:uppercase;line-height:1;white-space:nowrap;
 }
-.wordmark small{display:block;font-size:.46em;letter-spacing:.3em;margin-top:.5em;opacity:.7;font-family:'Be Vietnam Pro',sans-serif;font-weight:400;transition:opacity var(--dur) var(--ease-4),letter-spacing var(--dur) var(--ease-4)}
+.wordmark small{display:block;font-size:.46em;letter-spacing:.3em;margin-top:.5em;opacity:.7;font-family:'Open Sans',sans-serif;font-weight:400;transition:opacity var(--dur) var(--ease-4),letter-spacing var(--dur) var(--ease-4)}
 @media (hover:hover) and (pointer:fine){
   .wordmark:hover small{opacity:1;letter-spacing:.36em}
 }
@@ -237,7 +282,7 @@ html:not(.js) .process__title{transform:none;opacity:1}
 .mobnav[data-open="true"]{opacity:1;visibility:visible;transform:none}
 /* nur die Sprungmarken gross setzen — die Kontaktzeilen unten liefen sonst
    auf 390px ueber den rechten Rand hinaus */
-.mobnav > a{font-family:'Lora',serif;font-size:var(--fs-2);padding-block:var(--sp-2xs);border-bottom:1px solid var(--paper-20)}
+.mobnav > a{font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs-2);padding-block:var(--sp-2xs);border-bottom:1px solid var(--paper-20)}
 .mobnav .mobnav__foot{margin-top:auto;font-size:var(--fs--1);color:var(--paper-50);display:grid;gap:.35em}
 .mobnav__foot a{overflow-wrap:anywhere}
 
@@ -290,7 +335,24 @@ html:not(.js) .process__title{transform:none;opacity:1}
 .hero__bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--ink) 0%,rgba(46,10,24,.72) 42%,var(--ink) 100%)}
 .hero__inner{position:relative;z-index:3;width:100%;max-width:calc(var(--grid-whole) + 2*var(--pad));margin-inline:auto;padding-inline:var(--pad)}
 .hero__title{max-width:14ch}
-.hero__sub{margin-top:var(--sp-xl);max-width:34ch;font-size:var(--fs-1);color:var(--paper-80)}
+/* Zwischen 861 und 1020 px wird es eng: der Rahmen waechst mit `56vw - 180px`
+   schneller als die Textspalte schrumpft, also laeuft die Headline von links in
+   ihn hinein. Nachgemessen lagen hier -3 / -17 / -28 px (1000 / 900 / 880) — das
+   war schon vor dem Schriftwechsel so und wurde zweimal als „besser als vorher"
+   durchgewunken. Korrigiert wird NUR in diesem Band ueber das Zeilenmass: eine
+   kleinere Display-Stufe traefe auch die breiten Schirme, wo reichlich Luft ist,
+   und am Rahmen darf nicht gedreht werden — er soll laut Vorgabe groesser sein.
+   Unter 861 px entfaellt die Frage, dort liegt der Film absichtlich HINTER dem
+   Text (siehe `@media (max-width:860px)` weiter unten). */
+@media (min-width:861px) and (max-width:1020px){.hero__title{max-width:11ch}}
+/* Deckend, nicht --paper-80. Der Unterzeile fehlte nach dem Schriftwechsel der
+   Kontrast: Open Sans Light 300 setzt duennere Striche als das vorher verbaute
+   400, und am Glyphenkern wird genau dieser Strich gemessen. Ueber dem Film
+   fiel sie damit auf 4,32:1 (1440 px, Filmsekunde 8,3). Korrigiert wird an der
+   SCHRIFT, nicht an der Abdunklung — die sollte auf Wunsch heller werden, und
+   eine dunklere Flaeche haette genau das zurueckgedreht. Die Hierarchie zur
+   Headline traegt weiter Groesse und Gewicht, nicht die Transparenz. */
+.hero__sub{margin-top:var(--sp-xl);max-width:34ch;font-size:var(--fs-1);color:var(--paper)}
 .hero__actions{margin-top:var(--sp-l);display:flex;flex-wrap:wrap;gap:var(--sp-s);align-items:center}
 /* Breite: nicht `min(42vw,520px)`. Der Rahmen muss dort wachsen, wo Platz
    ist, und darf unten NICHT mitwachsen — die Headline ist auf 14ch begrenzt,
@@ -424,7 +486,7 @@ html:not(.js) .process__title{transform:none;opacity:1}
    Trefferflaechen benachbarter Striche nicht ueberlappen. */
 .carousel__dot::before{content:'';position:absolute;inset:-1.1rem calc(var(--sp-2xs) / -2)}
 .carousel__dot[data-active="true"]{flex-basis:64px;background:var(--paper)}
-.manifest__statement{font-size:var(--fs-2);line-height:1.3;font-family:'Lora',serif;max-width:22ch}
+.manifest__statement{font-size:var(--fs-2);line-height:1.3;font-family:'Montserrat',sans-serif;font-weight:700;max-width:22ch}
 .manifest__body{margin-top:var(--sp-xl);padding-left:var(--sp-m);border-left:1px solid var(--line)}
 
 /* --- 1e Rad: gepinnte Ueberschrift + rotierender Umlauf --- */
@@ -441,6 +503,8 @@ html:not(.js) .process__title{transform:none;opacity:1}
 .wheel__node{
   position:absolute;right:-22px;top:-22px;width:44px;height:44px;border-radius:50%;
   border:1px solid var(--paper-50);background:rgba(46,10,24,.35);color:var(--paper);
+  /* Ziffern in Montserrat Bold, wie Headlines — Markenvorgabe. */
+  font-family:'Montserrat',sans-serif;font-weight:700;
   font-size:var(--fs--1);display:grid;place-items:center;
   transform:rotate(calc(var(--p,0) * 1turn)) rotate(calc(-1 * var(--a)));
 }
@@ -455,7 +519,7 @@ html:not(.js) .process__title{transform:none;opacity:1}
   opacity:1;transform:none;
   transition:opacity .45s var(--ease-1) .2s,transform .45s var(--ease-1) .2s;
 }
-.wheel__label span{display:block;font-size:var(--fs--1);color:var(--blue);letter-spacing:.16em;text-transform:uppercase;margin-bottom:var(--sp-xs);font-family:'Be Vietnam Pro',sans-serif}
+.wheel__label span{display:block;font-size:var(--fs--1);color:var(--blue);letter-spacing:.16em;text-transform:uppercase;margin-bottom:var(--sp-xs);font-family:'Open Sans',sans-serif;font-weight:400}
 
 /* --- 1f Reveal-Block: eingesetztes Panel, Wort-fuer-Wort --- */
 .reveal{position:relative;height:260vh;background:var(--paper)}
@@ -470,7 +534,7 @@ html:not(.js) .process__title{transform:none;opacity:1}
 .reveal__topo{position:absolute;inset:0;opacity:.3}
 .reveal__text{
   position:relative;z-index:1;text-align:center;max-width:22ch;
-  font-family:'Lora',serif;font-size:var(--fs-4);line-height:1.12;letter-spacing:-.02em;
+  font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs-4);line-height:1.12;letter-spacing:-.02em;
 }
 .reveal__text .w{color:var(--paper-20);transition:color .35s var(--ease-1)}
 .reveal__text .w[data-on="true"]{color:var(--paper)}
@@ -496,7 +560,7 @@ html:not(.js) .process__title{transform:none;opacity:1}
 .case__chip{
   position:absolute;left:var(--sp-s);bottom:var(--sp-s);z-index:1;
   background:var(--paper);color:var(--brand);padding:.5em 1em;border-radius:var(--radius);
-  font-size:var(--fs--2);letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+  font-size:var(--fs--2);letter-spacing:.14em;text-transform:uppercase;font-weight:400;
 }
 .case__more{
   position:absolute;right:var(--sp-s);top:var(--sp-s);z-index:1;opacity:0;
@@ -521,7 +585,7 @@ html:not(.js) .process__title{transform:none;opacity:1}
 .services__panel img{width:100%;height:100%;object-fit:cover;opacity:.62}
 .services__panel figcaption{
   position:absolute;left:var(--sp-xl);bottom:var(--sp-xl);color:var(--paper);
-  font-family:'Lora',serif;font-size:var(--fs-3);
+  font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs-3);
 }
 .service{
   display:grid;grid-template-columns:4.5rem minmax(0,1fr) auto;align-items:center;gap:var(--sp-m);
@@ -533,8 +597,8 @@ html:not(.js) .process__title{transform:none;opacity:1}
 .service:last-child{border-bottom:1px solid var(--line)}
 /* Gold ist auf Creme nur fuer Punkte und Linien erlaubt (3,6:1) — eine
    Ordnungsziffer ist Schrift, also --accent. */
-.service__no{font-size:var(--fs--1);color:var(--accent);font-variant-numeric:tabular-nums}
-.service__name{font-family:'Lora',serif;font-size:var(--fs-2);color:var(--brand);line-height:1.2;overflow-wrap:break-word;hyphens:auto;transition:color var(--dur) var(--ease-4)}
+.service__no{font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs--1);color:var(--accent);font-variant-numeric:tabular-nums}
+.service__name{font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs-2);color:var(--brand);line-height:1.2;overflow-wrap:break-word;hyphens:auto;transition:color var(--dur) var(--ease-4)}
 .service__arrow{
   width:44px;height:44px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;
   transition:background-color var(--dur) var(--ease-4),color var(--dur) var(--ease-4),border-color var(--dur) var(--ease-4),transform var(--dur) var(--ease-4);
@@ -558,8 +622,8 @@ html:not(.js) .process__title{transform:none;opacity:1}
 .svccards{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gutter);margin-top:var(--sp-3xl)}
 .svccard{position:relative;aspect-ratio:3/4;overflow:hidden;border-radius:var(--radius);background:var(--ink);display:block}
 .svccard img{width:100%;height:100%;object-fit:cover;opacity:.66;transition:transform .9s var(--ease-1),opacity var(--dur) var(--ease-4)}
-.svccard__no{position:absolute;left:var(--sp-s);top:var(--sp-s);color:var(--paper);font-size:var(--fs--1);z-index:1}
-.svccard__name{position:absolute;left:var(--sp-s);bottom:var(--sp-s);right:var(--sp-s);z-index:1;color:var(--paper);font-family:'Lora',serif;font-size:var(--fs-1);line-height:1.15}
+.svccard__no{position:absolute;left:var(--sp-s);top:var(--sp-s);color:var(--paper);font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs--1);z-index:1}
+.svccard__name{position:absolute;left:var(--sp-s);bottom:var(--sp-s);right:var(--sp-s);z-index:1;color:var(--paper);font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs-1);line-height:1.15}
 .svccard__arrow{position:absolute;right:var(--sp-s);top:var(--sp-s);z-index:1;width:44px;height:44px;border-radius:50%;background:var(--paper);color:var(--brand);display:grid;place-items:center;transition:transform var(--dur) var(--ease-4)}
 @media (hover:hover) and (pointer:fine){
   .svccard:hover img{transform:scale(1.05);opacity:.5}
@@ -619,10 +683,10 @@ html:not(.js) .member:nth-child(even){margin-top:var(--sp-5xl)}
   content:'';position:absolute;inset:var(--sp-s);
   border:1px solid rgba(76,18,40,.12);pointer-events:none;
 }
-.member__mono{font-family:'Lora',serif;font-size:var(--fs-4);letter-spacing:.06em;line-height:1}
+.member__mono{font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs-4);letter-spacing:.06em;line-height:1}
 .member__phnote{font-size:var(--fs--2);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
 .member__arrow{position:absolute;right:var(--sp-s);top:var(--sp-s);z-index:1}
-.member__name{margin-top:var(--sp-s);font-family:'Lora',serif;font-size:var(--fs-1)}
+.member__name{margin-top:var(--sp-s);font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs-1)}
 .member__role{margin-top:.3em;font-size:var(--fs--1);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .member__vita{margin-top:var(--sp-s);font-size:var(--fs--1);color:var(--muted);max-width:44ch}
 
@@ -639,9 +703,9 @@ html:not(.js) .member:nth-child(even){margin-top:var(--sp-5xl)}
    wurde sonst drei Zeilen hoch gegen den nicht umbrechenden Satz rechts
    gequetscht. Faellt der Satz um, haelt margin-left:auto ihn trotzdem rechts. */
 .price{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:var(--sp-2xs) var(--sp-m);margin-block:var(--sp-l) var(--sp-m)}
-.price__name{font-family:'Lora',serif;font-size:var(--fs-2);line-height:1.15;display:flex;align-items:baseline;gap:var(--sp-s);text-wrap:balance}
+.price__name{font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs-2);line-height:1.15;display:flex;align-items:baseline;gap:var(--sp-s);text-wrap:balance}
 .price__name::before{content:'';width:12px;height:12px;border-radius:50%;background:var(--gold);flex:0 0 auto;translate:0 -.1em}
-.price__value{font-family:'Lora',serif;font-size:var(--fs-2);white-space:nowrap;margin-left:auto;color:var(--accent)}
+.price__value{font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs-2);white-space:nowrap;margin-left:auto;color:var(--accent)}
 .ticks li{display:grid;grid-template-columns:1.6rem 1fr;padding-block:.45em;color:var(--muted);font-size:var(--fs--1)}
 .ticks li::before{content:'–';color:var(--gold)}
 .billing__note{margin-top:var(--sp-l);font-size:var(--fs--1);color:var(--muted)}
@@ -652,7 +716,10 @@ html:not(.js) .member:nth-child(even){margin-top:var(--sp-5xl)}
 .faq{background:var(--paper);color:var(--brand);padding-block:var(--sp-4xl)}
 .faq__layout{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:var(--sp-2xl)}
 .faq__group + .faq__group{margin-top:var(--sp-2xl)}
-.faq__grouptitle{font-size:var(--fs--1);letter-spacing:.16em;text-transform:uppercase;color:var(--tertiary);margin-bottom:var(--sp-s)}
+/* Dieselbe Rubrikzeile wie `.eyebrow`, nur mit eigenem Namen — und deshalb
+   auch mit demselben Farbfehler: --tertiary trug hier gemessene 3,4:1 bei
+   15 px. --muted ist derselbe Farbton und traegt 6,3:1. */
+.faq__grouptitle{font-size:var(--fs--1);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:var(--sp-s)}
 .qa{border-top:1px solid var(--line)}
 .qa:last-child{border-bottom:1px solid var(--line)}
 .qa__q{
@@ -690,16 +757,16 @@ html:not(.js) .member:nth-child(even){margin-top:var(--sp-5xl)}
 .foot__layout{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:var(--sp-3xl) var(--sp-2xl)}
 .foot__markwrap{position:sticky;top:160px;align-self:start}
 .foot__mark{
-  font-family:'Lora',serif;font-size:clamp(2.6rem,7vw,6.2rem);line-height:.95;
+  font-family:'Montserrat',sans-serif;font-weight:700;font-size:clamp(2.6rem,7vw,6.2rem);line-height:.95;
   letter-spacing:.02em;text-transform:uppercase;color:var(--blue);
   transform:translateY(calc(var(--p) * -40px));
 }
-.foot__mark small{display:block;font-family:'Be Vietnam Pro',sans-serif;font-size:.17em;letter-spacing:.42em;color:var(--paper-50);margin-top:1.1em;font-weight:400}
+.foot__mark small{display:block;font-family:'Open Sans',sans-serif;font-size:.17em;letter-spacing:.42em;color:var(--paper-50);margin-top:1.1em;font-weight:400}
 .foot__col h3{font-size:var(--fs--1);letter-spacing:.16em;text-transform:uppercase;color:var(--tertiary);margin-bottom:var(--sp-s)}
 .foot__col + .foot__col{margin-top:var(--sp-xl)}
 .foot__col a{border-bottom:1px solid var(--paper-20);transition:border-color var(--dur) var(--ease-4)}
 @media (hover:hover) and (pointer:fine){.foot__col a:hover{border-color:var(--paper)}}
-.foot__big{font-family:'Lora',serif;font-size:var(--fs-2)}
+.foot__big{font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs-2)}
 .hours{display:grid;grid-template-columns:auto 1fr;gap:.3em var(--sp-m);font-size:var(--fs--1)}
 .hours dt{color:var(--paper-50)}
 .foot__bottom{
@@ -716,12 +783,12 @@ html:not(.js) .member:nth-child(even){margin-top:var(--sp-5xl)}
 .legal__inner{max-width:72ch;margin-inline:auto}
 .legal h1{margin-bottom:var(--sp-m)}
 .legal h2{
-  font-family:'Lora',Georgia,serif;font-size:var(--fs-1);font-weight:400;
+  font-family:'Montserrat',system-ui,sans-serif;font-size:var(--fs-1);font-weight:700;
   line-height:1.2;letter-spacing:-.01em;
   margin-top:var(--sp-xl);margin-bottom:var(--sp-xs);
   padding-top:var(--sp-s);border-top:1px solid var(--line);
 }
-.legal h3{font-size:var(--fs-0);font-weight:600;margin-top:var(--sp-m);margin-bottom:var(--sp-2xs)}
+.legal h3{font-family:'Montserrat',sans-serif;font-size:var(--fs-0);font-weight:700;margin-top:var(--sp-m);margin-bottom:var(--sp-2xs)}
 .legal p,.legal li{color:var(--muted)}
 .legal p + p{margin-top:.9em}
 .legal a{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
