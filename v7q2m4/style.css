@@ -435,7 +435,33 @@ html:not(.js) .process__title{transform:none;opacity:1}
   flex:0 0 auto;width:min(46vw,620px);aspect-ratio:16/10;overflow:hidden;border-radius:var(--radius);
   background:var(--ink);
 }
-.band__item img{width:100%;height:100%;object-fit:cover;transform:scale(1.06)}
+/* Gerechnet am 26.10.2026, Stand der Probe: 0 Anschnitte ueber
+   1920x800 / 1440x900 / 1280x1000 / 390x844. Dasselbe Motiv braucht je
+   Bildplatz einen ANDEREN Wert — beh-03 steht im Band, in einer Kachel und
+   im Panel, und die drei Rahmen sind verschieden flach. Darum nach Bildplatz
+   UND Datei adressiert und nicht etwa einmal pro Datei. */
+.services__panel img[src$="beh-01.webp"]{--op:50% 28%}  /* Arzt oben, Patient faellt bewusst ganz heraus */
+.services__panel img[src$="beh-03.webp"]{--op:50% 14%}
+.services__panel img[src$="beh-05.webp"]{--op:50% 8%}
+.services__panel img[src$="bes-01.webp"]{--op:50% 26%}
+.band__item      img[src$="beh-03.webp"]{--op:50% 18%}  /* dazu noch scale(1.06) */
+.case            img[src$="beh-01.webp"]{--op:34% 50%}  /* hier waagerecht: Kopf sass am rechten Rand */
+.case            img[src$="beh-03.webp"]{--op:50% 38%}
+.case            img[src$="beh-05.webp"]{--op:50% 26%}
+.gal             img[src$="beh-05.webp"]{--op:26% 34%}
+.gal             img[src$="raum-06.webp"]{--op:62% 50%}
+
+/* --op: gemessener Bildausschnitt je Motiv --------------------------------
+   `object-position` steht NICHT auf 50% 50%, sondern wird pro Bild im Markup
+   gesetzt. Grund: die Praxisfotos sind durchweg 3:4 hoch, die Bildplaetze
+   hier quer. `center` nimmt die Differenz zu gleichen Teilen oben und unten
+   weg — die Koepfe stehen aber oben, also fallen sie zuerst heraus. Aric hat
+   das am 26.10.2026 im Verfahrens-Panel gesehen (zwei kopflose Oberkoerper).
+   Die Werte sind mit tools/messen_kopfanschnitt.py gerechnet, nicht nach
+   Augenmass gesetzt: je Motiv und Bildplatz das object-position, das ueber
+   ALLE vier Fensterformate keinen Kopf anschneidet. Wer ein Motiv tauscht,
+   laesst die Probe neu laufen — ein geerbter Wert ist hier wertlos. */
+.band__item img{width:100%;height:100%;object-fit:cover;object-position:var(--op,50% 50%);transform:scale(1.06)}
 .band__item:nth-child(even){width:min(26vw,340px);aspect-ratio:3/4;align-self:flex-end}
 
 /* --- 1c Galerie-Gegenlauf mit zentralem Satz --- */
@@ -458,7 +484,7 @@ html:not(.js) .process__title{transform:none;opacity:1}
   /* Lava: gallery-item-move translateY(-20svh) -> translateY(20svh) */
   transform:translateY(calc((var(--p,.5) - .5) * 40svh * var(--f,1)));
 }
-.gal img{width:100%;aspect-ratio:var(--ar,4/3);object-fit:cover;
+.gal img{width:100%;aspect-ratio:var(--ar,4/3);object-fit:cover;object-position:var(--op,50% 50%);
   /* Lava: gallery-image-move translate 0 10% -> 0 -10% (gegenlaeufig) */
   translate:0 calc((.5 - var(--p,.5)) * 20%);
   scale:1.2;
@@ -556,7 +582,7 @@ html:not(.js) .process__title{transform:none;opacity:1}
 .cases__head{margin-bottom:var(--sp-3xl)}
 .cases__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
 .case{position:relative;aspect-ratio:1;overflow:hidden;background:var(--paper);display:block}
-.case img{width:100%;height:100%;object-fit:cover;transition:transform .9s var(--ease-1)}
+.case img{width:100%;height:100%;object-fit:cover;object-position:var(--op,50% 50%);transition:transform .9s var(--ease-1)}
 .case__chip{
   position:absolute;left:var(--sp-s);bottom:var(--sp-s);z-index:1;
   background:var(--paper);color:var(--brand);padding:.5em 1em;border-radius:var(--radius);
@@ -580,9 +606,19 @@ html:not(.js) .process__title{transform:none;opacity:1}
 .services__panel{
   position:relative;height:min(46vh,420px);overflow:hidden;border-radius:var(--radius);background:var(--ink);
 }
+/* Auf dem Schirm war dieser Streifen bei 1920x800 ganze 3,5:1 flach. Von einem
+   3:4-Hochformat bleiben dort 21 % der Bildhoehe uebrig — da passt kein Kopf
+   hinein, egal welches object-position man waehlt. Durchgerechnet (siehe
+   tools/messen_kopfanschnitt.py): bei 420 px bleiben 3 angeschnittene Koepfe,
+   bei 460 px noch 2, ab 500 px keiner mehr. Statt einer festen Zahl deshalb
+   eine Untergrenze fuer das Verhaeltnis — die haelt auch, wenn der Container
+   spaeter breiter wird. */
+@media (min-width:861px){
+  .services__panel{height:auto;aspect-ratio:5/2;min-height:420px;max-height:500px}
+}
 .services__panel figure{position:absolute;inset:0;opacity:0;transition:opacity .7s var(--ease-1)}
 .services__panel figure[data-active="true"]{opacity:1}
-.services__panel img{width:100%;height:100%;object-fit:cover;opacity:.62}
+.services__panel img{width:100%;height:100%;object-fit:cover;object-position:var(--op,50% 50%);opacity:.62}
 .services__panel figcaption{
   position:absolute;left:var(--sp-xl);bottom:var(--sp-xl);color:var(--paper);
   font-family:'Montserrat',sans-serif;font-weight:700;font-size:var(--fs-3);
